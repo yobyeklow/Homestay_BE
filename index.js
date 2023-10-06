@@ -1,10 +1,10 @@
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const morgan = require("morgan");
-const dotenv = require("dotenv");
-const authRoute = require("./routes/auth");
-const userRoute = require("./routes/user");
+import * as dotenv from 'dotenv'
+dotenv.config()
+import express from 'express'
+import cors from 'cors'
+import mongoose from 'mongoose'
+import morgan from 'morgan';
+import authRoute from './routes/auth.js'
 
 dotenv.config();
 
@@ -20,7 +20,6 @@ app.use(
 app.use(morgan("common"));
 
 //connect database
-//Mongo_URL:mongodb+srv://nvkhangcode:ccztKpGMyqblfVev@homestay.evhc52j.mongodb.net/homestay
 
 mongoose
   .connect(process.env.MONGODB_URL)
@@ -30,10 +29,9 @@ mongoose
   .catch((err) => console.log(err));
 
 // Routes
-app.use("/auth", authRoute);
-app.use("/user", userRoute);
+app.use("/api", authRoute);
 //
-
-app.listen(8000, () => {
-  console.log("Server is running...");
+const port = process.env.PORT || 8000;
+app.listen(port, () => {
+  console.log(`Server is running http://localhost:${port}`);
 });

@@ -1,6 +1,7 @@
-const jwt = require("jsonwebtoken");
+import jwt from 'jsonwebtoken'
+
 async function createToken(user) {
-  const accessToken = await jwt.sign(
+  const accessToken = jwt.sign(
     {
       id: user._id,
       Customer: user?.Customer,
@@ -21,4 +22,4 @@ async function createToken(user) {
   return { accessToken, refreshToken };
 }
 
-module.exports = createToken;
+export default createToken

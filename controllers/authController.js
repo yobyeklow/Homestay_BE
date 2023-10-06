@@ -1,56 +1,79 @@
-const User = require("../model/user");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const createToken = require("../utils/createToken");
+import createToken from "../utils/createToken.js"
+import Customer from "../model/customer.js";
+import bcrypt from 'bcrypt'
+import validate from "../utils/validate.js";
+import jwt from 'jsonwebtoken'
+
 const authController = {
-  registerUser: async (req, res) => {
+  registerCustomer: async (req, res) => {
     try {
+      const {email, phoneNumber, name, password} = req.body;
+
+      const err = validate.validateBeforeRegister(req.body);
+      if (Object.keys(err).length > 0) {
+          return res.status(400).json({ msg: Object.values(err)[0] });
+      }
+
+      const existingCustomer = await Customer.findOne({email})
+      if(existingCustomer) return res.status(400).json({msg: "Email đã tồn tại!"})
+
       const salt = await bcrypt.genSalt(10);
-      const hashed = await bcrypt.hash(req.body.password, salt);
-      //Create user
-      const newUser = await new User({
-        email: req.body.email,
+      const hashed = await bcrypt.hash(password, salt);
+      //Create customer
+
+      await Customer.create({
+        email: email,
         password: hashed,
-        phoneNumber: req.body.phoneNumber,
-        name: req.body.name,
-        gender: req.body.gender,
-        birthDay: req.body.birthDay,
-      });
-      const user = await newUser.save();
-      return res.status(200).json("Đăng ký tài khoản thành công");
+        phoneNumber: phoneNumber,
+        name: name,
+      })
+
+      return res.status(200).json({msg: "Đăng ký tài khoản thành công"});
     } catch (error) {
-      return res.status(500).json(error);
+      return res.status(500).json({ msg: error.message });
     }
   },
-  loginUser: async (req, res) => {
+
+  loginCustomer: async (req, res) => {
     try {
-      const user = await User.findOne({ email: req.body.email });
-      if (!user) {
-        return res.status(404).json("Email không tồn tại!");
+      const {email, password} = req.body
+
+      const err = validate.validateBeforeLogin(req.body);
+      if (Object.keys(err).length > 0) {
+        return res.status(400).json({ msg: Object.values(err)[0] });
       }
+
+      const customer = await Customer.findOne({ email });
+
+      if (!customer) {
+        return res.status(400).json("Tài khoản không tồn tại");
+      }
+
       const validPassword = await bcrypt.compare(
-        req.body.password,
-        user.password
+        password,
+        customer.password
       );
+
       if (!validPassword) {
-        return res.status(404).json("Mật khẩu không đúng!");
+        return res.status(400).json("Mật khẩu không đúng!");
       }
-      if (user && validPassword) {
-        const token = createToken(user);
-        const accessToken = (await token).accessToken;
-        const refreshToken = (await token).refreshToken;
-        // res.cookie("refreshToken", refreshToken);
+      if (customer && validPassword) {
+        const accessToken = jwt.sign({ id: customer._id }, process.env.JWT_SECRET, { expiresIn: '1d' })
+        const refreshToken = jwt.sign({ id: customer._id }, process.env.JWT_REFRESH_TOKEN, { expiresIn: '365d' })
+
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: false,
         });
-        const { password, ...others } = user._doc;
+
+        const { password, ...others } = customer._doc;
         return res.status(200).json({ ...others, accessToken });
       }
     } catch (error) {
       return res.status(500).json(error);
     }
   },
+
   refreshToken: async (req, res) => {
     const refreshToken = req.cookie.refreshToken;
     if (!refreshToken) {
@@ -72,10 +95,11 @@ const authController = {
       return res.status(200).json({ accessToken: newAccessToken });
     });
   },
+
   logout: async (req, res) => {
     res.clearCookie("refreshToken");
-    return res.status(200).json("Logged out successfully!");
+    return res.status(200).json("Đăng xuất thành công");
   },
 };
 
-module.exports = authController;
+export default authController
