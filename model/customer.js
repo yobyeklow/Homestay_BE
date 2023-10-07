@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 const customerSchema = new mongoose.Schema(
   {
     name: {
@@ -8,16 +8,13 @@ const customerSchema = new mongoose.Schema(
     },
     photo: {
       type: String,
-      default: ""
+      default: "",
     },
     phoneNumber: {
       type: String,
       required: [true, "Vui lòng nhập số điện thoại"],
       unique: true,
-      match: [
-        /(0[3|5|7|8|9])+([0-9]{8})\b/,
-        "Số điện thoại không đúng",
-      ],
+      match: [/(0[3|5|7|8|9])+([0-9]{8})\b/, "Số điện thoại không đúng"],
     },
     birthDay: {
       type: Date,
@@ -39,17 +36,22 @@ const customerSchema = new mongoose.Schema(
       min: [8, "Mật khẩu phải có ít nhất 8 ký tự"],
       max: [20, "Mật khẩu không vượt quá 20 ký tự"],
     },
+    type: {
+      type: String,
+      enum: ["customer", "host"],
+      default: "customer",
+    },
     gender: {
       type: String,
       enum: ["Nam", "Nữ"],
     },
-    paymentType: {type: String, default: ""},
-    cardNumber: {type: String, default: ""},
-    securityCode: {type: String, default: ""},
-    nameOnCard: {type: String, default: ""},
+    paymentType: { type: String, default: "" },
+    cardNumber: { type: String, default: "" },
+    securityCode: { type: String, default: "" },
+    nameOnCard: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
 const Customer = mongoose.model("Customer", customerSchema);
-export default Customer
+export default Customer;

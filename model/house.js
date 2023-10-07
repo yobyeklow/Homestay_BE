@@ -1,26 +1,27 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const houseSchema = new mongoose.Schema(
+const houseSchema = new Schema(
   {
-    location: {
-      type: mongoose.Schema.Types.ObjectId,
+    locationID: {
+      type: Schema.Types.ObjectId,
       ref: "Location",
-      required: [true, "Location can not be empty"],
     },
-    room: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: [true, "Room can not be empty"],
-    },
-    facilities: [
+    roomID: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "FacilitiesType",
-        required: [true, "FacilitiesType can not be empty"],
+        type: Schema.Types.ObjectId,
+        ref: "Room",
       },
     ],
+    facilityTypeID: [{ type: Schema.Types.ObjectId, ref: "FacilitiesType" }],
+    hostID: { type: Schema.Types.ObjectId, ref: "Host" },
+    numberGuest: { type: Number, default: 0 },
+    title: { type: String, default: "" },
+    description: { type: String, default: "" },
+    costPerNigth: { type: Number, default: 0 },
+    images: { type: Array, default: [] },
   },
   { timestamps: true }
 );
 
-const House = mongoose.model("House", houseSchema);
-module.exports = House;
+const House = model("House", houseSchema);
+export default House;

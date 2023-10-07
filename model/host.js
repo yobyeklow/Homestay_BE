@@ -1,37 +1,15 @@
-const mongoose = require("mongoose");
+import { Schema, Types, model } from "mongoose";
 
-const hostSchema = new mongoose.Schema(
+const hostSchema = new Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "UserID can not be empty"],
-    },
-    listing: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Listing",
-      required: [true, "ListingID can not be empty"],
-    },
-    languages: [
-      {
-        type: String,
-      },
-    ],
-    bankName: {
-      type: String,
-    },
-    bankNumber: {
-      type: String,
-    },
-    swiftCode: {
-      type: String,
-    },
-    NameOnCard: {
-      type: String,
-    },
+    customerID: { type: Types.ObjectId, ref: "Customer" },
+    bankName: { type: String, default: "" },
+    bankNumber: { type: String, default: "" },
+    swiftCode: { type: String, default: "" },
+    nameOnCard: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-const Host = mongoose.model("Host", hostSchema);
-module.exports = Host;
+const Host = model("Host", hostSchema);
+export default Host;

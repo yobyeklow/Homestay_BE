@@ -1,18 +1,18 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const coordinateSchema = new mongoose.Schema(
+const coordinateSchema = new Schema(
   {
     x: {
       type: Number,
-      required: [true, "Latitude can not be empty"],
+      required: [true, "Vĩ độ không thể để trống."],
     },
     y: {
       type: Number,
-      required: [true, "Longtitude can not be empty"],
+      required: [true, "Kinh độ không thể để trống."],
     },
   },
   { timestamps: true }
 );
 
-const Coordinate = mongoose.model("Coordinate", coordinateSchema);
-module.exports = Coordinate;
+const Coordinate = model("Coordinate", coordinateSchema);
+export default Coordinate;

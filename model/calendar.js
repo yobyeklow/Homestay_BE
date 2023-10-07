@@ -1,24 +1,14 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const calendarSchema = new mongoose.Schema(
+const calendarSchema = new Schema(
   {
-    listing: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Listing",
-      required: true,
-    },
-    availableDate: {
-      type: Date,
-      required: true,
-    },
-    isAvailable: {
-      type: Boolean,
-      required: true,
-      default: "True",
-    },
+    houseID: { type: Schema.Types.ObjectId, ref: "House" },
+    available: { type: Boolean, default: true },
+    dateFrom: { type: Date },
+    dateTo: { type: Date },
   },
   { timestamps: true }
 );
 
-const Calendar = mongoose.model("Calendar", calendarSchema);
-module.exports = Calendar;
+const Calendar = model("Calendar", calendarSchema);
+export default Calendar;

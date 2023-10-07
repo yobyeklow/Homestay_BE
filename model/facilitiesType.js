@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const facilitiesSchema = new mongoose.Schema(
+const facilitiesSchema = new Schema(
   {
     name: {
       type: String,
@@ -8,7 +8,7 @@ const facilitiesSchema = new mongoose.Schema(
     },
     facilitiesDetail: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "FacilitiesDetail",
       },
     ],
@@ -16,5 +16,5 @@ const facilitiesSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const FacilitiesType = mongoose.model("FacilitiesType", facilitiesSchema);
-module.exports = facilitiesSchema;
+const FacilitiesType = model("FacilitiesType", facilitiesSchema);
+export default FacilitiesType;

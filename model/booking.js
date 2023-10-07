@@ -1,13 +1,13 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const bookingSchema = new mongoose.Schema(
+const bookingSchema = new Schema(
   {
     house: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "House",
     },
     customer: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Customer",
     },
     checkInDate: {
@@ -27,7 +27,7 @@ const bookingSchema = new mongoose.Schema(
     },
     bookingStatus: {
       type: String,
-      enum: ["Cancelled", "Confirmed", "Completed"],
+      enum: ["Đã hủy", "Đang xử lý", "Hoàn thành"],
     },
     totalPrice: {
       type: Number,
@@ -39,7 +39,7 @@ const bookingSchema = new mongoose.Schema(
     },
     guestNumber: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Guest",
       },
     ],
@@ -47,5 +47,5 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Booking = new mongoose.model("Booking", bookingSchema);
-module.exports = Booking;
+const Booking = new model("Booking", bookingSchema);
+export default Booking;

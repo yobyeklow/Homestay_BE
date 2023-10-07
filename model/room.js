@@ -1,23 +1,21 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const roomSchema = new mongoose.Schema(
+const roomSchema = new Schema(
   {
+    houseID: { type: Schema.Types.ObjectId, ref: "House" },
     name: {
       type: String,
-      maxLength: [40, "Must be less than 40 characters"],
+      maxLength: [40, "Phải ít hơn 40 ký tự."],
       required: true,
     },
     bedCount: {
       type: Number,
+      default: 0,
     },
-    house: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "House",
-      required: [true, "House can not be empty"],
-    },
+    type: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-const Room = mongoose.model("Room", roomSchema);
-module.exports = Room;
+const Room = model("Room", roomSchema);
+export default Room;
