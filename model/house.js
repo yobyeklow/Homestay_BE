@@ -17,7 +17,7 @@ const houseSchema = new Schema(
     numberGuest: { type: Number, default: 0 },
     title: { type: String, default: "" },
     description: { type: String, default: "" },
-    costPerNigth: { type: Number, default: 0 },
+    costPerNight: { type: Number, default: 0 },
     images: { type: Array, default: [] },
   },
   { timestamps: true }

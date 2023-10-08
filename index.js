@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import authRoute from "./routes/auth.js";
 import hostRoute from "./routes/hostRoute.js";
 import houseRoute from "./routes/houseRoute.js";
+import bookingRoute from "./routes/bookingRoute.js";
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ mongoose
 app.use("/api", authRoute);
 app.use("/api", hostRoute);
 app.use("/api", houseRoute);
+app.use("/api", bookingRoute);
 //
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

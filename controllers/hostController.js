@@ -18,7 +18,7 @@ const hostController = {
       if (existingHost)
         return res.status(400).json({ msg: "Khách hàng đã là người cho thuê" });
 
-      await Customer.findByIdAndUpdate({ _id: customerID }, { type: "host" });
+      await Customer.findByIdAndUpdate({ _id: customerID }, { role: "host" });
 
       await Host.create({
         customerID: existingCustomer._id,

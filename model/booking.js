@@ -18,16 +18,10 @@ const bookingSchema = new Schema(
       type: Date,
       required: true,
     },
-    bookingDate: {
-      type: Date,
-      required: true,
-    },
-    updateDate: {
-      type: Date,
-    },
     bookingStatus: {
       type: String,
       enum: ["Đã hủy", "Đang xử lý", "Hoàn thành"],
+      default: "Đang xử lý",
     },
     totalPrice: {
       type: Number,
@@ -35,9 +29,9 @@ const bookingSchema = new Schema(
     },
     tax: {
       type: Number,
-      default: 5,
+      default: 8,
     },
-    guestNumber: [
+    guestID: [
       {
         type: Schema.Types.ObjectId,
         ref: "Guest",

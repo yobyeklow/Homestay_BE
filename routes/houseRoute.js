@@ -9,4 +9,10 @@ router.post(
   houseController.postHouseStay
 );
 
+router.patch(
+  "/house/update-house-stay/:houseID",
+  checkAuthenticationHost,
+  houseController.updateHouseStay
+);
+
 export default router;

@@ -2,6 +2,7 @@ import { Schema, model } from "mongoose";
 
 const locationSchema = new Schema(
   {
+    houseID: { type: Schema.Types.ObjectId, ref: "House" },
     city: {
       type: String,
       required: [true, "Thành phố không được để trống"],
@@ -17,8 +18,14 @@ const locationSchema = new Schema(
       maxLength: [6, "Phải ít hơn hoặc bằng 6 ký tự."],
     },
     coordinates: {
-      type: Schema.Types.ObjectId,
-      ref: "Coordinate",
+      x: {
+        type: Number,
+        required: [true, "Vĩ độ không thể để trống."],
+      },
+      y: {
+        type: Number,
+        required: [true, "Kinh độ không thể để trống."],
+      },
     },
   },
   { timestamps: true }

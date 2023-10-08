@@ -1,5 +1,4 @@
 import Calendar from "../model/calendar.js";
-import Coordinate from "../model/coordinate.js";
 import FacilitiesDetail from "../model/facilitiesDetails.js";
 import FacilitiesType from "../model/facilitiesType.js";
 import Host from "../model/host.js";
@@ -10,28 +9,22 @@ import Room from "../model/room.js";
 const houseController = {
   postHouseStay: async (req, res) => {
     try {
+      const { house, location, calendar, rooms, facilities } = req.body;
       const { customerID } = req.params;
-      const { house, coordinate, location, calendar, rooms, facilities } =
-        req.body;
-
       // Check for required fields
-      if (
-        !house ||
-        !coordinate ||
-        !location ||
-        !calendar ||
-        !facilities ||
-        !rooms
-      ) {
+      if (!house || !location || !calendar || !facilities || !rooms) {
         return res.status(400).json({ msg: "Vui lòng cung cấp đủ thông tin" });
       }
 
-      const existingHost = await Host.findOne({ customerID });
+      // Check dateFrom and dateTo
+      const dateFrom = new Date(calendar.dateFrom);
+      const dateTo = new Date(calendar.dateTo);
+      if (dateFrom > dateTo)
+        res
+          .status(404)
+          .json({ msg: "Ngày nhận phòng và trả phòng không hợp lệ" });
 
-      if (!existingHost) {
-        return res.status(400).json({ msg: "Không tìm thấy tài khoản" });
-      }
-
+      const existingHost = await Host.findOne({ customerID: customerID });
       // Create the House document
       const createHouse = await House.create({
         hostID: existingHost._id,
@@ -40,12 +33,6 @@ const houseController = {
         description: house.description,
         costPerNight: house.costPerNight,
         images: house.images,
-      });
-
-      // Create the Coordinate document
-      const createCoordinate = await Coordinate.create({
-        x: coordinate.x,
-        y: coordinate.y,
       });
 
       // Create the Calendar document
@@ -57,10 +44,14 @@ const houseController = {
 
       // Create the Location document
       const createLocation = await Location.create({
+        houseID: createHouse._id,
         streetAddress: location.streetAddress,
         city: location.city,
         zipCode: location.zipCode,
-        coordinates: createCoordinate._id,
+        coordinates: {
+          x: location.coordinate.x,
+          y: location.coordinate.y,
+        },
       });
 
       // Create Room documents and get their IDs
@@ -70,6 +61,7 @@ const houseController = {
             name: room.name,
             type: room.type,
             bedCount: room.bedCount,
+            houseID: createHouse._id,
           });
           return result._id;
         })
@@ -117,7 +109,194 @@ const houseController = {
         }
       );
 
-      res.status(200).json({ msg: "House stay created successfully" });
+      res.status(200).json({ msg: "Tạo housestay thành công" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  updateHouseStay: async (req, res) => {
+    try {
+      const { houseID } = req.params;
+      const { house, location, calendar, rooms, facilities } = req.body;
+
+      if (calendar) {
+        const dateFrom = new Date(calendar.dateFrom);
+        const dateTo = new Date(calendar.dateTo);
+        if (dateFrom > dateTo) {
+          return res
+            .status(400)
+            .json({ msg: "Ngày nhận phòng và trả phòng không hợp lệ" });
+        }
+      }
+
+      const existingHouse = await House.findOne({ _id: houseID });
+      if (!existingHouse) {
+        return res.status(404).json({ msg: "Housestay đã bị xóa" });
+      }
+
+      if (house) {
+        const updatedHouse = {
+          numberGuest: house.numberGuest || existingHouse.numberGuest,
+          title: house.title || existingHouse.title,
+          description: house.description || existingHouse.description,
+          costPerNight: house.costPerNight || existingHouse.costPerNight,
+          images: house.images || existingHouse.images,
+        };
+        await House.findOneAndUpdate({ _id: houseID }, updatedHouse);
+      }
+
+      if (location) {
+        const existingLocation = await Location.findOne({
+          _id: location._id,
+          houseID,
+        });
+        const updatedLocation = {
+          streetAddress:
+            location.streetAddress || existingLocation.streetAddress,
+          city: location.city || existingLocation.city,
+          zipCode: location.zipCode || existingLocation.zipCode,
+          coordinates: {
+            x: location.coordinates?.x || existingLocation.coordinates.x,
+            y: location.coordinates?.y || existingLocation.coordinates.y,
+          },
+        };
+        await Location.findOneAndUpdate(
+          { _id: location._id, houseID },
+          updatedLocation
+        );
+      }
+
+      if (calendar) {
+        const existingCalendar = await Calendar.findOne({
+          _id: calendar._id,
+          houseID,
+        });
+        const updatedCalendar = {
+          available: calendar.available || existingCalendar.available,
+          dateFrom: calendar.dateFrom || existingCalendar.dateFrom,
+          dateTo: calendar.dateTo || existingCalendar.dateTo,
+        };
+        await Calendar.findOneAndUpdate(
+          { _id: calendar._id, houseID },
+          updatedCalendar
+        );
+      }
+
+      const roomIDs = [];
+      if (rooms) {
+        for (const room of rooms) {
+          if (room._id) {
+            const existingRoom = await Room.findOne({ _id: room._id, houseID });
+            const updatedRoom = {
+              name: room.name || existingRoom.name,
+              type: room.type || existingRoom.type,
+              bedCount: room.bedCount || existingRoom.bedCount,
+            };
+            await Room.findOneAndUpdate(
+              { _id: room._id, houseID },
+              updatedRoom
+            );
+          } else {
+            const newRoom = await Room.create({
+              name: room.name,
+              type: room.type,
+              bedCount: room.bedCount,
+              houseID,
+            });
+            roomIDs.push(newRoom._id);
+          }
+        }
+      }
+
+      const facilitiesIDs = [];
+      if (facilities) {
+        for (const facility of facilities) {
+          if (facility._id) {
+            const existingFacility = await FacilitiesType.findOne({
+              _id: facility._id,
+              houseID,
+            });
+            const updatedFacility = {
+              name: facility.facilityType || existingFacility.name,
+            };
+            await FacilitiesType.findOneAndUpdate(
+              { _id: facility._id, houseID },
+              updatedFacility
+            );
+
+            for (const detail of facility.facilityDetails) {
+              let detailIDs = [];
+              if (detail._id) {
+                const existingDetail = await FacilitiesDetail.findOne({
+                  _id: detail._id,
+                });
+
+                const updatedDetail = {
+                  facilityName:
+                    detail.facilityName || existingDetail.facilityName,
+                  amount: detail.amount || existingDetail.amount,
+                };
+                await FacilitiesDetail.findOneAndUpdate(
+                  { _id: detail._id },
+                  updatedDetail
+                );
+              } else {
+                const newDetail = await FacilitiesDetail.create({
+                  facilityName: detail.facilityName,
+                  amount: detail.amount,
+                  facilityTypeID: facility._id,
+                });
+                detailIDs.push(newDetail._id);
+              }
+
+              await FacilitiesType.findOneAndUpdate(
+                { _id: facility._id },
+                {
+                  $push: { facilitiesDetail: { $each: detailIDs } },
+                }
+              );
+            }
+          } else {
+            const newFacilityType = await FacilitiesType.create({
+              houseID,
+              name: facility.facilityType,
+            });
+
+            const facilityDetailIDs = await Promise.all(
+              facility.facilityDetails.map(async (detail) => {
+                const newDetail = await FacilitiesDetail.create({
+                  facilityName: detail.facilityName,
+                  amount: detail.amount,
+                  facilityTypeID: newFacilityType._id,
+                });
+                return newDetail._id;
+              })
+            );
+
+            await FacilitiesType.findOneAndUpdate(
+              { _id: newFacilityType._id },
+              {
+                $push: { facilitiesDetail: { $each: facilityDetailIDs } },
+              }
+            );
+
+            facilitiesIDs.push(newFacilityType._id);
+          }
+        }
+      }
+
+      await House.findOneAndUpdate(
+        { _id: houseID },
+        {
+          $push: {
+            roomID: { $each: roomIDs },
+            facilityTypeID: { $each: facilitiesIDs },
+          },
+        }
+      );
+
+      res.status(200).json({ msg: "Cập nhật thành công" });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

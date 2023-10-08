@@ -36,7 +36,7 @@ const customerSchema = new mongoose.Schema(
       min: [8, "Mật khẩu phải có ít nhất 8 ký tự"],
       max: [20, "Mật khẩu không vượt quá 20 ký tự"],
     },
-    type: {
+    role: {
       type: String,
       enum: ["customer", "host"],
       default: "customer",

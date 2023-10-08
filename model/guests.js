@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const guestSchema = new mongoose.Schema(
+const guestSchema = new Schema(
   {
     booking: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Booking",
       require: [true, "BookingID can not be empty"],
     },
@@ -18,5 +18,5 @@ const guestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Guest = mongoose.model("Guest", guestSchema);
-module.exports = Guest;
+const Guest = model("Guest", guestSchema);
+export default Guest;
