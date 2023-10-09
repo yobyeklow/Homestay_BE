@@ -73,7 +73,58 @@ const bookingController = {
         { $push: { guestID: { $each: guestIDs } } }
       );
 
+      await Calendar.findOneAndUpdate(
+        { _id: calendar._id },
+        { $set: { available: false } }
+      );
+
       return res.status(200).json({ msg: "Booking thành công" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  updateCompletedStatusBooking: async (req, res) => {
+    try {
+      const { bookingID } = req.params;
+      const existingBooking = await Booking.findOne({ _id: bookingID });
+
+      if (!existingBooking)
+        res
+          .status(400)
+          .json({ msg: "Không tìm thấy. Booking có thể đã bị xóa." });
+
+      await Booking.findOneAndUpdate(
+        { _id: bookingID },
+        {
+          $set: {
+            bookingStatus: "Hoàn thành",
+          },
+        }
+      );
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  updateCanceledStatusBooking: async (req, res) => {
+    try {
+      const { bookingID } = req.params;
+      const existingBooking = await Booking.findOne({ _id: bookingID });
+
+      if (!existingBooking)
+        res
+          .status(400)
+          .json({ msg: "Không tìm thấy. Booking có thể đã bị xóa." });
+
+      await Booking.findOneAndUpdate(
+        { _id: bookingID },
+        {
+          $set: {
+            bookingStatus: "Đã hủy",
+          },
+        }
+      );
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
