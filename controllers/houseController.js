@@ -1,4 +1,5 @@
 import Calendar from "../model/calendar.js";
+import Customer from "../model/customer.js";
 import FacilitiesDetail from "../model/facilitiesDetails.js";
 import FacilitiesType from "../model/facilitiesType.js";
 import Host from "../model/host.js";
@@ -297,6 +298,78 @@ const houseController = {
       );
 
       res.status(200).json({ msg: "Cập nhật thành công" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAllHouseStay: async (req, res) => {
+    try {
+      let { page, limit } = req.query;
+      page = parseInt(page) || 1;
+      limit = parseInt(limit) || 20;
+
+      const skip = (page - 1) * limit;
+
+      // Fetch calendars with available set to true, paginated
+      const calendars = await Calendar.find({ available: true })
+        .skip(skip)
+        .limit(limit);
+
+      // Create an array of promises to fetch house data for each calendar
+      const dataPromises = calendars.map(async (calendar) => {
+        const result = await House.findOne({ _id: calendar.houseID })
+          .populate("locationID")
+          .populate("roomID")
+          .populate("hostID")
+          .populate({
+            path: "facilityTypeID",
+            populate: {
+              path: "facilitiesDetail",
+              model: "FacilitiesDetail",
+            },
+          })
+          .exec();
+
+        const customer = await Customer.findOne({
+          _id: result.hostID.customerID,
+        });
+
+        const house = Object.assign(
+          {
+            _id: result._id,
+            locationID: result.locationID,
+            roomID: result.roomID,
+            facilityTypeID: result.facilityTypeID,
+            hostID: result.hostID._id,
+            numberGuest: result.numberGuest,
+            title: result.title,
+            description: result.description,
+            costPerNight: result.costPerNight,
+            images: result.images,
+          },
+          {
+            calendarID: {
+              _id: calendar._id,
+              available: calendar.available,
+              dateFrom: calendar.dateFrom,
+              dateTo: calendar.dateTo,
+            },
+            customerID: {
+              _id: customer._id,
+              name: customer.name,
+              photo: customer.photo,
+            },
+          }
+        );
+
+        return house;
+      });
+
+      // Execute all the promises in parallel and wait for all of them to resolve
+      const houseData = await Promise.all(dataPromises);
+
+      res.status(200).json({ houses: houseData });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

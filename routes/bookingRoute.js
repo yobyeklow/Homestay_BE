@@ -12,10 +12,10 @@ router.post(
   bookingController.bookingHouseStay
 );
 
-router.post(
-  "/booking/:bookingID",
+router.patch(
+  "/booking/update-completed-status/:bookingID/:hostID",
   checkAuthenticationHost,
-  bookingController.bookingHouseStay
+  bookingController.updateCompletedStatusBooking
 );
 
 export default router;

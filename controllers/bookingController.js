@@ -86,13 +86,23 @@ const bookingController = {
 
   updateCompletedStatusBooking: async (req, res) => {
     try {
-      const { bookingID } = req.params;
+      const { bookingID, hostID } = req.params;
       const existingBooking = await Booking.findOne({ _id: bookingID });
 
       if (!existingBooking)
         res
           .status(400)
           .json({ msg: "Không tìm thấy. Booking có thể đã bị xóa." });
+
+      const house = await House.findOne({
+        _id: existingBooking.houseID,
+      });
+
+      if (!house)
+        return res.status(400).json({ msg: "Housestay không tồn tại." });
+
+      if (house.hostID.toString() !== hostID)
+        return res.status(404).json({ msg: "Bạn không có quyền cập nhật." });
 
       await Booking.findOneAndUpdate(
         { _id: bookingID },
@@ -102,6 +112,8 @@ const bookingController = {
           },
         }
       );
+
+      res.status(200).json({ msg: "Cập nhật thành công." });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
