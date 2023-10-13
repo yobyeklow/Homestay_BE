@@ -450,17 +450,13 @@ const houseController = {
       const filteredHouses = result.filter((house) => {
         let isCity = city ? house.locationID.city === city : true;
         let isDateFrom = dateFrom
-          ? dateFrom >= house.calenderID.dateFrom
+          ? new Date(dateFrom) >= house.calenderID.dateFrom
           : true;
-        console.log(
-          "🚀 ~ file: houseController.js:456 ~ filteredHouses ~ isDateFrom:",
-          isDateFrom
-        );
-        let isDateTo = dateTo ? dateTo <= house.calenderID.dateTo : true;
-        console.log(
-          "🚀 ~ file: houseController.js:460 ~ filteredHouses ~ isDateTo:",
-          isDateTo
-        );
+
+        let isDateTo = dateTo
+          ? new Date(dateTo) <= house.calenderID.dateTo
+          : true;
+
         return (
           house.calenderID.available === true &&
           isCity &&
