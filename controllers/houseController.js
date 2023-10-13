@@ -1,5 +1,4 @@
 import Calendar from "../model/calendar.js";
-import Customer from "../model/customer.js";
 import FacilitiesDetail from "../model/facilitiesDetails.js";
 import FacilitiesType from "../model/facilitiesType.js";
 import Host from "../model/host.js";
@@ -306,81 +305,54 @@ const houseController = {
 
   getAllHouseStay: async (req, res) => {
     try {
-      let { page, limit } = req.query;
-      page = parseInt(page) || 1;
-      limit = parseInt(limit) || 20;
-
+      let { page = 1, limit = 20 } = req.query;
+      page = parseInt(page);
+      limit = parseInt(limit);
       const skip = (page - 1) * limit;
 
-      // Fetch calendars with available set to true, paginated
-      const calendars = await Calendar.find({ available: true })
-        .skip(skip)
-        .limit(limit);
-
-      // Create an array of promises to fetch house data for each calendar
-      const dataPromises = calendars.map(async (calendar) => {
-        const result = await House.findOne({ _id: calendar.houseID })
-          .populate("locationID")
-          .populate("roomID")
-          .populate("hostID")
-          .populate({
-            path: "facilityTypeID",
-            populate: {
-              path: "facilitiesDetail",
-              model: "FacilitiesDetail",
-            },
-          })
-          .exec();
-
-        const customer = await Customer.findOne({
-          _id: result.hostID.customerID,
+      const query = House.find()
+        .populate("calenderID", "_id available dateFrom dateTo")
+        .populate("locationID", "_id city streetAddress coordinates zipCode")
+        .populate("roomID", "_id name bedCount type")
+        .populate({
+          path: "hostID",
+          model: "Host",
+          select: "_id bankName bankNumber swiftCode nameOnCard",
+          populate: {
+            path: "customerID",
+            model: "Customer",
+            select: "_id name photo phoneNumber email",
+          },
+        })
+        .populate("facilityTypeID", "_id name")
+        .populate({
+          path: "facilityTypeID",
+          model: "FacilitiesType",
+          select: "_id name",
+          populate: {
+            path: "facilitiesDetail",
+            model: "FacilitiesDetail",
+            select: "_id facilityName amount",
+          },
         });
 
-        const house = Object.assign(
-          {
-            _id: result._id,
-            locationID: result.locationID,
-            roomID: result.roomID,
-            facilityTypeID: result.facilityTypeID,
-            hostID: result.hostID._id,
-            numberGuest: result.numberGuest,
-            title: result.title,
-            description: result.description,
-            costPerNight: result.costPerNight,
-            images: result.images,
-          },
-          {
-            calendarID: {
-              _id: calendar._id,
-              available: calendar.available,
-              dateFrom: calendar.dateFrom,
-              dateTo: calendar.dateTo,
-            },
-            customerID: {
-              _id: customer._id,
-              name: customer.name,
-              photo: customer.photo,
-            },
-          }
-        );
+      // Apply pagination
+      query.skip(skip).limit(limit);
 
-        return house;
-      });
+      const result = await query.exec();
+      const filteredHouses = result.filter(
+        (house) => house.calenderID.available === true
+      );
 
-      // Execute all the promises in parallel and wait for all of them to resolve
-      const houseData = await Promise.all(dataPromises);
-
-      res.status(200).json({ houses: houseData });
+      res.status(200).json({ houses: filteredHouses });
     } catch (error) {
-      return res.status(500).json({ msg: error.message });
+      res.status(500).json({ msg: error.message });
     }
   },
 
   getAllHouseStayNearLocation: async (req, res) => {
     try {
       const { sw, ne } = req.query;
-
-      // const calendars = await Calendar.find({ available: true });
 
       const result = await House.find()
         .populate({
@@ -434,6 +406,72 @@ const houseController = {
       res.status(200).json({ houses: filteredHouses });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  filterHouseStay: async (req, res) => {
+    try {
+      let { page = 1, limit = 20, dateFrom, dateTo, city } = req.query;
+
+      page = parseInt(page);
+      limit = parseInt(limit);
+      const skip = (page - 1) * limit;
+
+      const query = House.find()
+        .populate("calenderID", "_id available dateFrom dateTo")
+        .populate("locationID", "_id city streetAddress coordinates zipCode")
+        .populate("roomID", "_id name bedCount type")
+        .populate({
+          path: "hostID",
+          model: "Host",
+          select: "_id bankName bankNumber swiftCode nameOnCard",
+          populate: {
+            path: "customerID",
+            model: "Customer",
+            select: "_id name photo phoneNumber email",
+          },
+        })
+        .populate("facilityTypeID", "_id name")
+        .populate({
+          path: "facilityTypeID",
+          model: "FacilitiesType",
+          select: "_id name",
+          populate: {
+            path: "facilitiesDetail",
+            model: "FacilitiesDetail",
+            select: "_id facilityName amount",
+          },
+        });
+
+      // Apply pagination
+      query.skip(skip).limit(limit);
+
+      const result = await query.exec();
+      const filteredHouses = result.filter((house) => {
+        let isCity = city ? house.locationID.city === city : true;
+        let isDateFrom = dateFrom
+          ? dateFrom >= house.calenderID.dateFrom
+          : true;
+        console.log(
+          "🚀 ~ file: houseController.js:456 ~ filteredHouses ~ isDateFrom:",
+          isDateFrom
+        );
+        let isDateTo = dateTo ? dateTo <= house.calenderID.dateTo : true;
+        console.log(
+          "🚀 ~ file: houseController.js:460 ~ filteredHouses ~ isDateTo:",
+          isDateTo
+        );
+        return (
+          house.calenderID.available === true &&
+          isCity &&
+          isDateFrom &&
+          isDateTo
+        );
+      });
+
+      res.status(200).json({ houses: filteredHouses });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
     }
   },
 };

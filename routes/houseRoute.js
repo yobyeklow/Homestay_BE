@@ -5,10 +5,13 @@ import houseController from "../controllers/houseController.js";
 const router = express.Router();
 
 router.get("/house/get-all/:page/:limit", houseController.getAllHouseStay);
+
 router.get(
   "/house/get-all-near-location",
   houseController.getAllHouseStayNearLocation
 );
+
+router.get("/house/filter/:page/:limit", houseController.filterHouseStay);
 
 router.post(
   "/house/post-house-stays/:customerID",
