@@ -419,14 +419,18 @@ const houseController = {
           },
         })
         .exec();
-
       const filteredHouses = result.filter((house) => {
         const isNearLocation =
-          sw.latitude <= house.locationID.coordinates.x <= ne.latitude &&
-          sw.longtitude <= house.locationID.coordinates.y <= ne.latitude;
+          parseFloat(sw.latitude) <= house.locationID.coordinates.x &&
+          house.locationID.coordinates.x <= parseFloat(ne.latitude) &&
+          parseFloat(sw.longtitude) <= house.locationID.coordinates.y &&
+          house.locationID.coordinates.y <= parseFloat(ne.longtitude);
 
-        return house.calenderID.available === true && isNearLocation;
+        const isAvailable = house.calenderID.available === true;
+
+        return isAvailable && isNearLocation;
       });
+
       res.status(200).json({ houses: filteredHouses });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
