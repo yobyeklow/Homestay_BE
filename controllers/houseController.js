@@ -37,7 +37,7 @@ const houseController = {
       });
 
       // Create the Calendar document
-      await Calendar.create({
+      const createCalendar = await Calendar.create({
         houseID: createHouse._id,
         dateFrom: calendar.dateFrom,
         dateTo: calendar.dateTo,
@@ -102,9 +102,10 @@ const houseController = {
       await House.findOneAndUpdate(
         { _id: createHouse._id },
         {
-          $push: {
-            roomID: { $each: roomIDs },
-            facilityTypeID: { $each: facilitiesIDs },
+          $set: {
+            roomID: roomIDs,
+            facilityTypeID: facilitiesIDs,
+            calenderID: createCalendar._id,
             locationID: createLocation._id,
           },
         }
@@ -370,6 +371,63 @@ const houseController = {
       const houseData = await Promise.all(dataPromises);
 
       res.status(200).json({ houses: houseData });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAllHouseStayNearLocation: async (req, res) => {
+    try {
+      const { sw, ne } = req.query;
+
+      // const calendars = await Calendar.find({ available: true });
+
+      const result = await House.find()
+        .populate({
+          path: "calenderID",
+          model: "Calendar",
+          select: "_id available dateFrom dateTo",
+        })
+        .populate({
+          path: "locationID",
+          model: "Location",
+          select: "_id city streetAddress coordinates zipCode",
+        })
+        .populate({
+          path: "roomID",
+          model: "Room",
+          select: "_id name bedCount type",
+        })
+        .populate({
+          path: "hostID",
+          model: "Host",
+          select: "_id bankName bankNumber swiftCode nameOnCard",
+          populate: {
+            path: "customerID",
+            model: "Customer",
+            select: "_id name photo phoneNumber email",
+          },
+        })
+        .populate({
+          path: "facilityTypeID",
+          model: "FacilitiesType",
+          select: "_id name",
+          populate: {
+            path: "facilitiesDetail",
+            model: "FacilitiesDetail",
+            select: "_id facilityName amount",
+          },
+        })
+        .exec();
+
+      const filteredHouses = result.filter((house) => {
+        const isNearLocation =
+          sw.latitude <= house.locationID.coordinates.x <= ne.latitude &&
+          sw.longtitude <= house.locationID.coordinates.y <= ne.latitude;
+
+        return house.calenderID.available === true && isNearLocation;
+      });
+      res.status(200).json({ houses: filteredHouses });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

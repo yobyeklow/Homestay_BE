@@ -12,6 +12,7 @@ const houseSchema = new Schema(
         ref: "Room",
       },
     ],
+    calenderID: { type: Schema.Types.ObjectId, ref: "Calendar" },
     facilityTypeID: [{ type: Schema.Types.ObjectId, ref: "FacilitiesType" }],
     hostID: { type: Schema.Types.ObjectId, ref: "Host" },
     numberGuest: { type: Number, default: 0 },
