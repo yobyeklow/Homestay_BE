@@ -6,7 +6,7 @@ const bookingSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "House",
     },
-    customer: {
+    customerID: {
       type: Schema.Types.ObjectId,
       ref: "Customer",
     },

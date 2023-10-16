@@ -14,9 +14,13 @@ const authController = {
         return res.status(400).json({ msg: Object.values(err)[0] });
       }
 
-      const existingCustomer = await Customer.findOne({ email });
-      if (existingCustomer)
-        return res.status(400).json({ msg: "Email đã tồn tại!" });
+      const existingEmailCustomer = await Customer.findOne({ email });
+      if (existingEmailCustomer)
+        return res.status(400).json({ msg: "Email đã đăng ký!" });
+
+      const existingPhoneCustomer = await Customer.findOne({ phoneNumber });
+      if (existingPhoneCustomer)
+        return res.status(400).json({ msg: "Số điện thoại đã đăng ký!" });
 
       const salt = await bcrypt.genSalt(10);
       const hashed = await bcrypt.hash(password, salt);

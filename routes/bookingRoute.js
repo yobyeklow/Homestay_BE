@@ -6,6 +6,7 @@ import {
 import bookingController from "../controllers/bookingController.js";
 
 const router = express.Router();
+
 router.post(
   "/booking/:customerID/:houseID",
   checkAuthentication,
@@ -16,6 +17,12 @@ router.patch(
   "/booking/update-completed-status/:bookingID/:hostID",
   checkAuthenticationHost,
   bookingController.updateCompletedStatusBooking
+);
+
+router.get(
+  "/booking/get-all/:hostID",
+  checkAuthenticationHost,
+  bookingController.getAllBookingsOfHost
 );
 
 export default router;

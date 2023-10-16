@@ -42,6 +42,7 @@ const bookingController = {
 
       // Calculate total price
       const countNight = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
+
       const totalPrice =
         countNight * existingHouse.costPerNight +
         countNight * existingHouse.costPerNight * 0.08;
@@ -137,6 +138,35 @@ const bookingController = {
           },
         }
       );
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAllBookingsOfHost: async (req, res) => {
+    try {
+      const { hostID } = req.params;
+
+      const results = await Booking.find()
+        .populate({
+          path: "houseID",
+          model: "House",
+          select: "_id hostID title description costPerNight images",
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        });
+      const bookings = results.filter((booking) => {
+        return booking.houseID.hostID.toString() === hostID;
+      });
+      res.status(200).json({ bookings: bookings });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
