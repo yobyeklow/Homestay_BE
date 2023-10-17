@@ -25,4 +25,10 @@ router.patch(
   authController.updatePaymentForCustomer
 );
 
+router.get(
+  "/auth/customer/:customerID",
+  checkAuthentication,
+  authController.getInfoCustomer
+);
+
 export default router;

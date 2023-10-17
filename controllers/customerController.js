@@ -1,3 +1,1 @@
-export const customerController = {
-  
-}
+export const customerController = {};

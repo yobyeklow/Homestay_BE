@@ -179,6 +179,21 @@ const authController = {
       return res.status(500).json({ msg: error.message });
     }
   },
+
+  getInfoCustomer: async (req, res) => {
+    try {
+      const { customerID } = req.params;
+
+      const customer = await Customer.findOne({ _id: customerID });
+
+      if (!customer)
+        return res.status(400).json({ msg: "Tài khoản không còn tồn tại" });
+
+      res.status(200).json({ customer: { ...customer._doc, password: "" } });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 export default authController;
