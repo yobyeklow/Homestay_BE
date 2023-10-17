@@ -17,11 +17,7 @@ const refundSchema = new Schema(
       type: Number,
       default: 15,
     },
-    refundStatus: {
-      type: String,
-      enum: ["Đã hoàn tiền", "Đang xử lý"],
-      default: "Đang xử lý",
-    },
+    reasonRefund: { type: String, default: "" },
   },
   { timestamps: true }
 );

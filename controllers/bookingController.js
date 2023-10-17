@@ -140,6 +140,8 @@ const bookingController = {
   cancelBookingByCustomer: async (req, res) => {
     try {
       const { bookingID, paymentID } = req.params;
+      const { reasonRefund } = req.body;
+
       const existingBooking = await Booking.findOne({ _id: bookingID });
       const existingPayment = await Payment.findOne({ _id: paymentID });
 
@@ -151,7 +153,32 @@ const bookingController = {
       if (!existingPayment)
         res.status(400).json({ msg: "Lỗi vui lòng thử lại." });
 
-      const updateBooking = Booking.findOneAndUpdate(
+      if (!existingPayment.isRefund)
+        res.status(404).json({ msg: "Booking này không được hoàn tiền" });
+
+      if (existingPayment.isFreeRefund) {
+        const refundAmount =
+          Date.now() - new Date(existingBooking.checkInDate) >=
+          5 * 24 * 60 * 60 * 1000
+            ? existingPayment.amount
+            : existingPayment.amount - existingPayment.amount * 0.15;
+
+        await Refund.create({
+          paymentID: existingPayment._id,
+          refundDate: Date.now(),
+          total: refundAmount,
+          reasonRefund,
+        });
+      } else {
+        await Refund.create({
+          paymentID: existingPayment._id,
+          refundDate: Date.now(),
+          total: existingPayment.amount - existingPayment.amount * 0.15,
+          reasonRefund,
+        });
+      }
+
+      await Booking.findOneAndUpdate(
         { _id: bookingID },
         {
           $set: {
@@ -160,16 +187,8 @@ const bookingController = {
         }
       );
 
-      const createRefund = Refund.create({
-        paymentID: existingPayment._id,
-        refundDate: Date.now(),
-        total: existingPayment.amount - existingPayment.amount * 0.15,
-      });
-
-      await Promise.all([updateBooking, createRefund]);
-
       res.status(200).json({
-        msg: "Yêu cầu hủy booking thành công.",
+        msg: "Yêu cầu hủy booking thành công. Tiền sẽ được chuyển về sau 5-7 ngày",
       });
     } catch (error) {
       return res.status(500).json({ msg: error.message });

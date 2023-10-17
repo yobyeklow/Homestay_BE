@@ -19,6 +19,12 @@ router.patch(
   bookingController.updateCompletedStatusBooking
 );
 
+router.patch(
+  "/booking/cancel/:bookingID/:paymentID",
+  checkAuthentication,
+  bookingController.cancelBookingByCustomer
+);
+
 router.get(
   "/booking/get-all/:hostID",
   checkAuthenticationHost,
