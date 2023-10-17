@@ -9,7 +9,8 @@ const bookingController = {
   bookingHouseStay: async (req, res) => {
     try {
       const { houseID, customerID } = req.params;
-      const { guests, checkInDate, checkOutDate } = req.body;
+      const { guests, checkInDate, checkOutDate, isRefund, isFreeRefund } =
+        req.body;
 
       // Input validation
       if (!guests || !checkInDate || !checkOutDate) {
@@ -74,6 +75,8 @@ const bookingController = {
         bookingID: booking._id,
         amount: amountPayment,
         paymentDate: Date.now(),
+        isRefund,
+        isFreeRefund,
       });
 
       const updateBooking = Booking.findOneAndUpdate(
@@ -165,7 +168,9 @@ const bookingController = {
 
       await Promise.all([updateBooking, createRefund]);
 
-      res.status(200).json({ msg: "Hủy booking thành công" });
+      res.status(200).json({
+        msg: "Yêu cầu hủy booking thành công.",
+      });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

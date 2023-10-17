@@ -15,6 +15,8 @@ const paymentSchema = new Schema(
       required: true,
     },
     tax: { type: Number, default: 8 },
+    isRefund: { type: Boolean, default: true },
+    isFreeRefund: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
