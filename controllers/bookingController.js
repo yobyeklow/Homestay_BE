@@ -2,6 +2,7 @@ import Booking from "../model/booking.js";
 import Calendar from "../model/calendar.js";
 import Guest from "../model/guests.js";
 import House from "../model/house.js";
+import Payment from "../model/payment.js";
 
 const bookingController = {
   bookingHouseStay: async (req, res) => {
@@ -68,16 +69,23 @@ const bookingController = {
         })
       );
 
-      // Update the booking with guest IDs
-      await Booking.findOneAndUpdate(
+      const updateBooking = Booking.findOneAndUpdate(
         { _id: booking._id },
         { $push: { guestID: { $each: guestIDs } } }
       );
 
-      await Calendar.findOneAndUpdate(
+      const updateCalendar = Calendar.findOneAndUpdate(
         { _id: calendar._id },
         { $set: { available: false } }
       );
+
+      const createPayment = Payment.create({
+        bookingID: booking._id,
+        amount: totalPrice,
+        paymentDate: Date.now(),
+      });
+
+      await Promise.all([updateBooking, updateCalendar, createPayment]);
 
       return res.status(200).json({ msg: "Booking thành công" });
     } catch (error) {
