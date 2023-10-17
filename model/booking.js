@@ -10,6 +10,10 @@ const bookingSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Customer",
     },
+    paymentID: {
+      type: Schema.Types.ObjectId,
+      ref: "Payment",
+    },
     checkInDate: {
       type: Date,
       required: true,
@@ -26,10 +30,6 @@ const bookingSchema = new Schema(
     totalPrice: {
       type: Number,
       required: true,
-    },
-    tax: {
-      type: Number,
-      default: 8,
     },
     guestID: [
       {

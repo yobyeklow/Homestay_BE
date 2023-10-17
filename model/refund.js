@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const refundSchema = new mongoose.Schema(
+const refundSchema = new Schema(
   {
-    payment: {
-      type: mongoose.Schema.Types.ObjectId,
+    paymentID: {
+      type: Schema.Types.ObjectId,
       ref: "Payment",
     },
     refundDate: {
@@ -12,15 +12,19 @@ const refundSchema = new mongoose.Schema(
     },
     tax: {
       type: Number,
-      default: 10,
     },
-    moneyRefundAfterTax: {
+    total: {
       type: Number,
-      required: true,
+      default: 15,
+    },
+    refundStatus: {
+      type: String,
+      enum: ["Đã hoàn tiền", "Đang xử lý"],
+      default: "Đang xử lý",
     },
   },
   { timestamps: true }
 );
 
-const Refund = mongoose.model("Refund", refundSchema);
-module.exports = Refund;
+const Refund = model("Refund", refundSchema);
+export default Refund;

@@ -3,6 +3,7 @@ import Calendar from "../model/calendar.js";
 import Guest from "../model/guests.js";
 import House from "../model/house.js";
 import Payment from "../model/payment.js";
+import Refund from "../model/refund.js";
 
 const bookingController = {
   bookingHouseStay: async (req, res) => {
@@ -44,10 +45,10 @@ const bookingController = {
       // Calculate total price
       const countNight = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
 
-      const totalPrice =
+      const totalPrice = countNight * existingHouse.costPerNight;
+      const amountPayment =
         countNight * existingHouse.costPerNight +
         countNight * existingHouse.costPerNight * 0.08;
-
       // Create a booking
       const booking = await Booking.create({
         houseID,
@@ -69,9 +70,20 @@ const bookingController = {
         })
       );
 
+      const createPayment = await Payment.create({
+        bookingID: booking._id,
+        amount: amountPayment,
+        paymentDate: Date.now(),
+      });
+
       const updateBooking = Booking.findOneAndUpdate(
         { _id: booking._id },
-        { $push: { guestID: { $each: guestIDs } } }
+        {
+          $push: {
+            guestID: { $each: guestIDs },
+            paymentID: createPayment._id,
+          },
+        }
       );
 
       const updateCalendar = Calendar.findOneAndUpdate(
@@ -79,13 +91,7 @@ const bookingController = {
         { $set: { available: false } }
       );
 
-      const createPayment = Payment.create({
-        bookingID: booking._id,
-        amount: totalPrice,
-        paymentDate: Date.now(),
-      });
-
-      await Promise.all([updateBooking, updateCalendar, createPayment]);
+      await Promise.all([updateBooking, updateCalendar]);
 
       return res.status(200).json({ msg: "Booking thành công" });
     } catch (error) {
@@ -128,17 +134,21 @@ const bookingController = {
     }
   },
 
-  updateCanceledStatusBooking: async (req, res) => {
+  cancelBookingByCustomer: async (req, res) => {
     try {
-      const { bookingID } = req.params;
+      const { bookingID, paymentID } = req.params;
       const existingBooking = await Booking.findOne({ _id: bookingID });
+      const existingPayment = await Payment.findOne({ _id: paymentID });
 
       if (!existingBooking)
         res
           .status(400)
           .json({ msg: "Không tìm thấy. Booking có thể đã bị xóa." });
 
-      await Booking.findOneAndUpdate(
+      if (!existingPayment)
+        res.status(400).json({ msg: "Lỗi vui lòng thử lại." });
+
+      const updateBooking = Booking.findOneAndUpdate(
         { _id: bookingID },
         {
           $set: {
@@ -146,6 +156,16 @@ const bookingController = {
           },
         }
       );
+
+      const createRefund = Refund.create({
+        paymentID: existingPayment._id,
+        refundDate: Date.now(),
+        total: existingPayment.amount - existingPayment.amount * 0.15,
+      });
+
+      await Promise.all([updateBooking, createRefund]);
+
+      res.status(200).json({ msg: "Hủy booking thành công" });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
@@ -160,6 +180,7 @@ const bookingController = {
           path: "houseID",
           model: "House",
           select: "_id hostID title description costPerNight images",
+          match: { hostID: hostID },
         })
         .populate({
           path: "customerID",
@@ -170,11 +191,18 @@ const bookingController = {
           path: "guestID",
           model: "Guest",
           select: "_id guestType guestNumber",
+        })
+        .populate({
+          path: "paymentID",
+          model: "Payment",
+          select: "_id amount paymentDate tax",
         });
-      const bookings = results.filter((booking) => {
-        return booking.houseID.hostID.toString() === hostID;
+
+      const filteredBookings = results.filter((booking) => {
+        return booking.houseID !== null;
       });
-      res.status(200).json({ bookings: bookings });
+
+      res.status(200).json({ bookings: filteredBookings });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
