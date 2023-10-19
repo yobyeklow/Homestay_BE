@@ -31,4 +31,10 @@ router.get(
   bookingController.getAllBookingsOfHost
 );
 
+router.get(
+  "/booking/customer/get-all/:customerID",
+  checkAuthentication,
+  bookingController.getAllBookingByCustomer
+);
+
 export default router;

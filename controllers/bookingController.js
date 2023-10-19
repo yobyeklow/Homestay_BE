@@ -205,6 +205,95 @@ const bookingController = {
           model: "House",
           select: "_id hostID title description costPerNight images",
           match: { hostID: hostID },
+          populate: [
+            {
+              path: "facilityTypeID",
+              model: "FacilitiesType",
+              select: "_id name",
+              populate: {
+                path: "facilitiesDetail",
+                model: "FacilitiesDetail",
+                select: "_id facilityName amount",
+              },
+            },
+            {
+              path: "roomID",
+              model: "Room",
+              select: "_id name bedCount type",
+            },
+            {
+              path: "locationID",
+              model: "Location",
+              select: "_id city streetAddress coordinates zipCode",
+            },
+            {
+              path: "calenderID",
+              model: "Calendar",
+              select: "_id available dateFrom dateTo",
+            },
+          ],
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        })
+        .populate({
+          path: "paymentID",
+          model: "Payment",
+          select: "_id amount paymentDate tax isRefund isFreeRefund",
+        });
+
+      const filteredBookings = results.filter((booking) => {
+        return booking.houseID !== null;
+      });
+
+      res.status(200).json({ bookings: filteredBookings });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAllBookingByCustomer: async (req, res) => {
+    try {
+      const { customerID } = req.params;
+      const results = await Booking.find({ customerID })
+        .populate({
+          path: "houseID",
+          model: "House",
+          select: "_id title description costPerNight images facilityTypeID",
+          populate: [
+            {
+              path: "facilityTypeID",
+              model: "FacilitiesType",
+              select: "_id name",
+              populate: {
+                path: "facilitiesDetail",
+                model: "FacilitiesDetail",
+                select: "_id facilityName amount",
+              },
+            },
+            {
+              path: "roomID",
+              model: "Room",
+              select: "_id name bedCount type",
+            },
+            {
+              path: "locationID",
+              model: "Location",
+              select: "_id city streetAddress coordinates zipCode",
+            },
+            {
+              path: "calenderID",
+              model: "Calendar",
+              select: "_id available dateFrom dateTo",
+            },
+          ],
         })
         .populate({
           path: "customerID",
@@ -220,15 +309,12 @@ const bookingController = {
           path: "paymentID",
           model: "Payment",
           select: "_id amount paymentDate tax",
-        });
+        })
+        .lean();
 
-      const filteredBookings = results.filter((booking) => {
-        return booking.houseID !== null;
-      });
-
-      res.status(200).json({ bookings: filteredBookings });
+      res.status(200).json({ bookings: results });
     } catch (error) {
-      return res.status(500).json({ msg: error.message });
+      res.status(500).json({ msg: error.message });
     }
   },
 };
