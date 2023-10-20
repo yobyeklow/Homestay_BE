@@ -8,6 +8,14 @@ import stripe from "stripe";
 const stripeInstance = stripe(
   "sk_test_51O3JgrBfbdixG3xjP2dRGvgfXtSAhgx9ln4RBI7GdFeLSLz6pVTbfcY8WqiquAWU9uoQDUVn5q6PET6AtrJKFHvQ00HNwkelk9"
 );
+
+const calculateOrderAmount = (items) => {
+  // Replace this constant with a calculation of the order's amount
+  // Calculate the order total on the server to prevent
+  // people from directly manipulating the amount on the client
+  return 1400;
+};
+
 const authController = {
   registerCustomer: async (req, res) => {
     try {
@@ -211,6 +219,10 @@ const authController = {
         enabled: true,
       },
     });
+    console.log(
+      "🚀 ~ file: authController.js:214 ~ createPaymentIntent: ~ paymentIntent:",
+      paymentIntent
+    );
 
     res.send({
       clientSecret: paymentIntent.client_secret,
