@@ -208,25 +208,29 @@ const authController = {
   },
 
   createPaymentIntent: async (req, res) => {
-    const { items } = req.body;
+    try {
+      const { items } = req.body;
 
-    // Create a PaymentIntent with the order amount and currency
-    const paymentIntent = await stripeInstance.paymentIntents.create({
-      amount: calculateOrderAmount(items),
-      currency: "usd",
-      // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
-    console.log(
-      "🚀 ~ file: authController.js:214 ~ createPaymentIntent: ~ paymentIntent:",
-      paymentIntent
-    );
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripeInstance.paymentIntents.create({
+        amount: calculateOrderAmount(items),
+        currency: "usd",
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      console.log(
+        "🚀 ~ file: authController.js:214 ~ createPaymentIntent: ~ paymentIntent:",
+        paymentIntent
+      );
 
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
+      res.status(200).json({
+        clientSecret: paymentIntent.client_secret,
+      });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
   },
 };
 
