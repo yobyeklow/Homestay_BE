@@ -31,4 +31,10 @@ router.get(
   authController.getInfoCustomer
 );
 
+router.post(
+  "/auth/customer/create-payment-intent",
+  checkAuthentication,
+  authController.createPaymentIntent
+);
+
 export default router;

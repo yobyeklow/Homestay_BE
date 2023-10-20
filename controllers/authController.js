@@ -3,7 +3,11 @@ import Customer from "../model/customer.js";
 import bcrypt from "bcrypt";
 import validate from "../utils/validate.js";
 import jwt from "jsonwebtoken";
+import stripe from "stripe";
 
+const stripeInstance = stripe(
+  "sk_test_51O3JgrBfbdixG3xjP2dRGvgfXtSAhgx9ln4RBI7GdFeLSLz6pVTbfcY8WqiquAWU9uoQDUVn5q6PET6AtrJKFHvQ00HNwkelk9"
+);
 const authController = {
   registerCustomer: async (req, res) => {
     try {
@@ -193,6 +197,24 @@ const authController = {
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
+  },
+
+  createPaymentIntent: async (req, res) => {
+    const { items } = req.body;
+
+    // Create a PaymentIntent with the order amount and currency
+    const paymentIntent = await stripeInstance.paymentIntents.create({
+      amount: calculateOrderAmount(items),
+      currency: "usd",
+      // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
   },
 };
 
