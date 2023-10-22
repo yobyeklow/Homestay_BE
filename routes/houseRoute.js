@@ -12,6 +12,7 @@ router.get(
 );
 
 router.get("/house/filter/:page/:limit", houseController.filterHouseStay);
+router.get("/house/:id", houseController.getHouseById);
 
 router.post(
   "/house/post-house-stays/:customerID",

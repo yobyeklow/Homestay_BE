@@ -470,6 +470,46 @@ const houseController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  getHouseById: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const existingHouse = await House.findOne({ _id: id })
+        .populate("calenderID", "_id available dateFrom dateTo")
+        .populate("locationID", "_id city streetAddress coordinates zipCode")
+        .populate("roomID", "_id name bedCount type")
+        .populate({
+          path: "hostID",
+          model: "Host",
+          select: "_id bankName bankNumber swiftCode nameOnCard",
+          populate: {
+            path: "customerID",
+            model: "Customer",
+            select: "_id name photo phoneNumber email",
+          },
+        })
+        .populate("facilityTypeID", "_id name")
+        .populate({
+          path: "facilityTypeID",
+          model: "FacilitiesType",
+          select: "_id name",
+          populate: {
+            path: "facilitiesDetail",
+            model: "FacilitiesDetail",
+            select: "_id facilityName amount",
+          },
+        })
+        .exec();
+
+      if (!existingHouse)
+        return res.status(404).json({ msg: "Housestay không còn tồn tại" });
+
+      res.status(200).json({ houses: existingHouse });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 export default houseController;
