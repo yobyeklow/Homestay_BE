@@ -411,39 +411,77 @@ const houseController = {
 
   filterHouseStay: async (req, res) => {
     try {
-      let { page = 1, limit = 20, dateFrom, dateTo, city } = req.query;
+      let {
+        page = 1,
+        limit = 20,
+        dateFrom,
+        dateTo,
+        city,
+        numberGuest,
+      } = req.query;
 
       page = parseInt(page);
       limit = parseInt(limit);
       const skip = (page - 1) * limit;
 
-      const query = House.find()
-        .populate("calenderID", "_id available dateFrom dateTo")
-        .populate("locationID", "_id city streetAddress coordinates zipCode")
-        .populate("roomID", "_id name bedCount type")
-        .populate({
-          path: "hostID",
-          model: "Host",
-          select: "_id bankName bankNumber swiftCode nameOnCard",
-          populate: {
-            path: "customerID",
-            model: "Customer",
-            select: "_id name photo phoneNumber email",
-          },
-        })
-        .populate("facilityTypeID", "_id name")
-        .populate({
-          path: "facilityTypeID",
-          model: "FacilitiesType",
-          select: "_id name",
-          populate: {
-            path: "facilitiesDetail",
-            model: "FacilitiesDetail",
-            select: "_id facilityName amount",
-          },
-        });
+      const query = numberGuest
+        ? House.find({ numberGuest })
+            .populate("calenderID", "_id available dateFrom dateTo")
+            .populate(
+              "locationID",
+              "_id city streetAddress coordinates zipCode"
+            )
+            .populate("roomID", "_id name bedCount type")
+            .populate({
+              path: "hostID",
+              model: "Host",
+              select: "_id bankName bankNumber swiftCode nameOnCard",
+              populate: {
+                path: "customerID",
+                model: "Customer",
+                select: "_id name photo phoneNumber email",
+              },
+            })
+            .populate("facilityTypeID", "_id name")
+            .populate({
+              path: "facilityTypeID",
+              model: "FacilitiesType",
+              select: "_id name",
+              populate: {
+                path: "facilitiesDetail",
+                model: "FacilitiesDetail",
+                select: "_id facilityName amount",
+              },
+            })
+        : House.find()
+            .populate("calenderID", "_id available dateFrom dateTo")
+            .populate(
+              "locationID",
+              "_id city streetAddress coordinates zipCode"
+            )
+            .populate("roomID", "_id name bedCount type")
+            .populate({
+              path: "hostID",
+              model: "Host",
+              select: "_id bankName bankNumber swiftCode nameOnCard",
+              populate: {
+                path: "customerID",
+                model: "Customer",
+                select: "_id name photo phoneNumber email",
+              },
+            })
+            .populate("facilityTypeID", "_id name")
+            .populate({
+              path: "facilityTypeID",
+              model: "FacilitiesType",
+              select: "_id name",
+              populate: {
+                path: "facilitiesDetail",
+                model: "FacilitiesDetail",
+                select: "_id facilityName amount",
+              },
+            });
 
-      // Apply pagination
       query.skip(skip).limit(limit);
 
       const result = await query.exec();
