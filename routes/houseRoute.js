@@ -1,5 +1,8 @@
 import express from "express";
-import { checkAuthenticationHost } from "../middlewares/checkAuth.js";
+import {
+  checkAuthentication,
+  checkAuthenticationHost,
+} from "../middlewares/checkAuth.js";
 import houseController from "../controllers/houseController.js";
 
 const router = express.Router();
@@ -24,6 +27,12 @@ router.patch(
   "/house/update-house-stay/:houseID",
   checkAuthenticationHost,
   houseController.updateHouseStay
+);
+
+router.post(
+  "/house/:houseID/:customerID/rating",
+  checkAuthentication,
+  houseController.ratingHouse
 );
 
 export default router;

@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const ratingSchema = new mongoose.Schema(
+const ratingSchema = new Schema(
   {
     ratingPoint: {
       type: Number,
@@ -10,17 +10,17 @@ const ratingSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
+    userID: {
+      type: Schema.Types.ObjectId,
       ref: "User",
     },
-    house: {
-      type: mongoose.Schema.Types.ObjectId,
+    houseID: {
+      type: Schema.Types.ObjectId,
       ref: "House",
     },
   },
   { timestamps: true }
 );
 
-const Rating = mongoose.model("Rating", ratingSchema);
-module.exports = Rating;
+const Rating = model("Rating", ratingSchema);
+export default Rating;

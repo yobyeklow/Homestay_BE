@@ -187,6 +187,15 @@ const bookingController = {
         }
       );
 
+      await Calendar.findOneAndUpdate(
+        { houseID: existingBooking.houseID },
+        {
+          $set: {
+            available: true,
+          },
+        }
+      );
+
       res.status(200).json({
         msg: "Yêu cầu hủy booking thành công. Tiền sẽ được chuyển về sau 5-7 ngày",
       });
