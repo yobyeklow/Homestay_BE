@@ -427,7 +427,7 @@ const houseController = {
       const skip = (page - 1) * limit;
 
       const query = numberGuest
-        ? House.find({ $gte: { numberGuest: numberGuest } })
+        ? House.find({ numberGuest: { $gte: numberGuest } })
             .populate("calenderID", "_id available dateFrom dateTo")
             .populate(
               "locationID",
