@@ -18,8 +18,12 @@ const bookingController = {
       }
 
       // Find the existing house and calendar
-      const existingHouse = await House.findOne({ _id: houseID });
       const calendar = await Calendar.findOne({ houseID: houseID });
+
+      if (!calendar.available)
+        res.status(400).json({ msg: "Housestay đã được booking" });
+
+      const existingHouse = await House.findOne({ _id: houseID });
 
       if (!existingHouse) {
         return res
