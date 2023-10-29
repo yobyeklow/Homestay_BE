@@ -420,6 +420,8 @@ const houseController = {
         dateTo,
         city,
         numberGuest,
+        sw,
+        ne,
       } = req.query;
 
       page = parseInt(page);
@@ -489,6 +491,15 @@ const houseController = {
       const result = await query.exec();
       const filteredHouses = result.filter((house) => {
         let isCity = city ? house.locationID.city === city : true;
+
+        let isNearLocation =
+          sw && ne
+            ? parseFloat(sw.latitude) <= house.locationID.coordinates.x &&
+              house.locationID.coordinates.x <= parseFloat(ne.latitude) &&
+              parseFloat(sw.longtitude) <= house.locationID.coordinates.y &&
+              house.locationID.coordinates.y <= parseFloat(ne.longtitude)
+            : true;
+
         let isDateFrom = dateFrom
           ? new Date(dateFrom) >= house.calenderID.dateFrom
           : true;
@@ -500,6 +511,7 @@ const houseController = {
         return (
           house.calenderID.available === true &&
           isCity &&
+          isNearLocation &&
           isDateFrom &&
           isDateTo
         );
