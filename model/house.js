@@ -20,6 +20,7 @@ const houseSchema = new Schema(
     description: { type: String, default: "" },
     costPerNight: { type: Number, default: 0 },
     images: { type: Array, default: [] },
+    bedCount: { type: Number, default: 1 },
   },
   { timestamps: true }
 );

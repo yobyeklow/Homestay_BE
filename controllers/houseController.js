@@ -8,6 +8,17 @@ import Location from "../model/location.js";
 import Rating from "../model/rating.js";
 import Room from "../model/room.js";
 
+function checkFacilitiesInFacilityTypeID(facilities, facilityTypeID) {
+  const results = facilities.map((facility) => {
+    const found = facilityTypeID.some(
+      (type) => type.name === facility.facilityType
+    );
+    return found;
+  });
+
+  return results;
+}
+
 const houseController = {
   postHouseStay: async (req, res) => {
     try {
@@ -35,6 +46,7 @@ const houseController = {
         description: house.description,
         costPerNight: house.costPerNight,
         images: house.images,
+        bedCount: house.bedCount || 1,
       });
 
       // Create the Calendar document
@@ -62,7 +74,7 @@ const houseController = {
           const result = await Room.create({
             name: room.name,
             type: room.type,
-            bedCount: room.bedCount,
+            count: room.count,
             houseID: createHouse._id,
           });
           return result._id;
@@ -145,6 +157,7 @@ const houseController = {
           description: house.description || existingHouse.description,
           costPerNight: house.costPerNight || existingHouse.costPerNight,
           images: house.images || existingHouse.images,
+          bedCount: house.bedCount || existingHouse.bedCount,
         };
         await House.findOneAndUpdate({ _id: houseID }, updatedHouse);
       }
@@ -194,7 +207,7 @@ const houseController = {
             const updatedRoom = {
               name: room.name || existingRoom.name,
               type: room.type || existingRoom.type,
-              bedCount: room.bedCount || existingRoom.bedCount,
+              count: room.count || existingRoom.count,
             };
             await Room.findOneAndUpdate(
               { _id: room._id, houseID },
@@ -204,7 +217,7 @@ const houseController = {
             const newRoom = await Room.create({
               name: room.name,
               type: room.type,
-              bedCount: room.bedCount,
+              count: room.count,
               houseID,
             });
             roomIDs.push(newRoom._id);
@@ -315,7 +328,7 @@ const houseController = {
       const query = House.find()
         .populate("calenderID", "_id available dateFrom dateTo")
         .populate("locationID", "_id city streetAddress coordinates zipCode")
-        .populate("roomID", "_id name bedCount type")
+        .populate("roomID", "_id name count type")
         .populate({
           path: "hostID",
           model: "Host",
@@ -370,7 +383,7 @@ const houseController = {
         .populate({
           path: "roomID",
           model: "Room",
-          select: "_id name bedCount type",
+          select: "_id name count type",
         })
         .populate({
           path: "hostID",
@@ -422,6 +435,12 @@ const houseController = {
         numberGuest,
         sw,
         ne,
+        bedCount,
+        countBedRoom,
+        countBathRoom,
+        facilities,
+        minPrice,
+        maxPrice,
       } = req.query;
 
       page = parseInt(page);
@@ -435,7 +454,7 @@ const houseController = {
               "locationID",
               "_id city streetAddress coordinates zipCode"
             )
-            .populate("roomID", "_id name bedCount type")
+            .populate("roomID", "_id name count type")
             .populate({
               path: "hostID",
               model: "Host",
@@ -463,7 +482,7 @@ const houseController = {
               "locationID",
               "_id city streetAddress coordinates zipCode"
             )
-            .populate("roomID", "_id name bedCount type")
+            .populate("roomID", "_id name count type")
             .populate({
               path: "hostID",
               model: "Host",
@@ -508,12 +527,48 @@ const houseController = {
           ? new Date(dateTo) <= house.calenderID.dateTo
           : true;
 
+        let isBedCount = bedCount ? bedCount >= house.bedCount : true;
+        let isBedRoom = true;
+        let isBathRoom = true;
+
+        house.roomID.forEach((r) => {
+          isBedRoom = countBedRoom
+            ? r.type === "phongngu" && countBedRoom >= r.count
+            : true;
+
+          isBathRoom = countBathRoom
+            ? r.type === "phongtam" && countBathRoom >= r.count
+            : true;
+        });
+
+        let arrayFacilities = [];
+
+        if (facilities) {
+          arrayFacilities = checkFacilitiesInFacilityTypeID(
+            facilities,
+            house.facilityTypeID
+          );
+        }
+
+        let isFacilities =
+          arrayFacilities.length > 0 ? arrayFacilities.includes(true) : true;
+
+        let isPrice =
+          minPrice && maxPrice
+            ? house.costPerNight >= minPrice && house.costPerNight <= maxPrice
+            : true;
+
         return (
           house.calenderID.available === true &&
           isCity &&
           isNearLocation &&
           isDateFrom &&
-          isDateTo
+          isDateTo &&
+          isBedCount &&
+          isBedRoom &&
+          isPrice &&
+          isBathRoom &&
+          isFacilities
         );
       });
 

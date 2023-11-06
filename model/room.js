@@ -8,7 +8,7 @@ const roomSchema = new Schema(
       maxLength: [40, "Phải ít hơn 40 ký tự."],
       required: true,
     },
-    bedCount: {
+    count: {
       type: Number,
       default: 0,
     },
