@@ -10,6 +10,7 @@ import authRoute from "./routes/auth.js";
 import hostRoute from "./routes/hostRoute.js";
 import houseRoute from "./routes/houseRoute.js";
 import bookingRoute from "./routes/bookingRoute.js";
+import revenueRoute from "./routes/revenueRoute.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api", authRoute);
 app.use("/api", hostRoute);
 app.use("/api", houseRoute);
 app.use("/api", bookingRoute);
+app.use("/api", revenueRoute);
 //
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
