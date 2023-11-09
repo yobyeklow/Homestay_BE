@@ -7,7 +7,12 @@ import houseController from "../controllers/houseController.js";
 
 const router = express.Router();
 
-router.get("/house/get-all/:page/:limit", houseController.getAllHouseStay);
+router.get("/house/get-all", houseController.getAllHouseStay);
+router.get(
+  "/house/get-all/:hostID",
+  checkAuthenticationHost,
+  houseController.getHouseCreatedByHost
+);
 
 router.get(
   "/house/get-all-near-location",

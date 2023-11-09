@@ -320,9 +320,9 @@ const houseController = {
 
   getAllHouseStay: async (req, res) => {
     try {
-      let { page = 1, limit = 20 } = req.query;
-      page = parseInt(page);
-      limit = parseInt(limit);
+      let { page, limit } = req.query;
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
       const skip = (page - 1) * limit;
 
       const query = House.find()
@@ -585,7 +585,7 @@ const houseController = {
       const existingHouse = await House.findOne({ _id: id })
         .populate("calenderID", "_id available dateFrom dateTo")
         .populate("locationID", "_id city streetAddress coordinates zipCode")
-        .populate("roomID", "_id name bedCount type")
+        .populate("roomID", "_id name count type")
         .populate({
           path: "hostID",
           model: "Host",
@@ -644,6 +644,51 @@ const houseController = {
       });
 
       res.status(200).json({ msg: "Đánh giá thành công" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getHouseCreatedByHost: async (req, res) => {
+    try {
+      let { page, limit } = req.query;
+      const { hostID } = req.params;
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
+
+      const query = House.find({ hostID: hostID })
+        .populate("calenderID", "_id available dateFrom dateTo")
+        .populate("locationID", "_id city streetAddress coordinates zipCode")
+        .populate("roomID", "_id name count type")
+        .populate({
+          path: "hostID",
+          model: "Host",
+          select: "_id bankName bankNumber swiftCode nameOnCard",
+          populate: {
+            path: "customerID",
+            model: "Customer",
+            select: "_id name photo phoneNumber email",
+          },
+        })
+        .populate("facilityTypeID", "_id name")
+        .populate({
+          path: "facilityTypeID",
+          model: "FacilitiesType",
+          select: "_id name",
+          populate: {
+            path: "facilitiesDetail",
+            model: "FacilitiesDetail",
+            select: "_id facilityName amount",
+          },
+        });
+
+      // Apply pagination
+      query.skip(skip).limit(limit);
+
+      const results = await query.exec();
+
+      res.status(200).json({ houses: results });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
