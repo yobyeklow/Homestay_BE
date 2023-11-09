@@ -1,6 +1,7 @@
 import Booking from "../model/booking.js";
 import Calendar from "../model/calendar.js";
 import Guest from "../model/guests.js";
+import Host from "../model/host.js";
 import House from "../model/house.js";
 import Payment from "../model/payment.js";
 import Refund from "../model/refund.js";
@@ -279,7 +280,8 @@ const bookingController = {
         .populate({
           path: "houseID",
           model: "House",
-          select: "_id title description costPerNight images facilityTypeID",
+          select:
+            "_id title description costPerNight images facilityTypeID bedCount",
           populate: [
             {
               path: "facilityTypeID",
@@ -294,7 +296,7 @@ const bookingController = {
             {
               path: "roomID",
               model: "Room",
-              select: "_id name bedCount type",
+              select: "_id name count type",
             },
             {
               path: "locationID",
@@ -328,6 +330,170 @@ const bookingController = {
       res.status(200).json({ bookings: results });
     } catch (error) {
       res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAllReservation: async (req, res) => {
+    try {
+      let { page, limit } = req.query;
+      const { customerID } = req.params;
+      const existingHost = await Host.findOne({ customerID });
+      if (!existingHost)
+        res.status(400).json({ msg: "Tài khoản không tồn tại" });
+
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
+
+      const results = await Booking.find()
+        .populate({
+          path: "houseID",
+          model: "House",
+          select: "_id hostID",
+          match: { hostID: existingHost._id },
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      const filteredBookings = results.filter((booking) => {
+        return booking.houseID !== null;
+      });
+
+      res.status(200).json({ bookings: filteredBookings });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+
+  getAllCompletedReservation: async (req, res) => {
+    try {
+      let { page, limit } = req.query;
+      const { customerID } = req.params;
+      const existingHost = await Host.findOne({ customerID });
+      if (!existingHost)
+        res.status(400).json({ msg: "Tài khoản không tồn tại" });
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
+      const results = await Booking.find({ bookingStatus: "Hoàn thành" })
+        .populate({
+          path: "houseID",
+          model: "House",
+          select: "_id hostID",
+          match: { hostID: existingHost._id },
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      const filteredBookings = results.filter((booking) => {
+        return booking.houseID !== null;
+      });
+
+      res.status(200).json({ bookings: filteredBookings });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  getAllCancelledReservation: async (req, res) => {
+    try {
+      let { page, limit } = req.query;
+      const { customerID } = req.params;
+      const existingHost = await Host.findOne({ customerID });
+      if (!existingHost)
+        res.status(400).json({ msg: "Tài khoản không tồn tại" });
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
+      const results = await Booking.find({ bookingStatus: "Đã hủy" })
+        .populate({
+          path: "houseID",
+          model: "House",
+          select: "_id hostID",
+          match: { hostID: existingHost._id },
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      const filteredBookings = results.filter((booking) => {
+        return booking.houseID !== null;
+      });
+
+      res.status(200).json({ bookings: filteredBookings });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  getAllPenddingReservation: async (req, res) => {
+    try {
+      let { page, limit } = req.query;
+      const { customerID } = req.params;
+      const existingHost = await Host.findOne({ customerID });
+      if (!existingHost)
+        res.status(400).json({ msg: "Tài khoản không tồn tại" });
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
+      const results = await Booking.find({ bookingStatus: "Đang xử lý" })
+        .populate({
+          path: "houseID",
+          model: "House",
+          select: "_id hostID",
+          match: { hostID: existingHost._id },
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      const filteredBookings = results.filter((booking) => {
+        return booking.houseID !== null;
+      });
+
+      res.status(200).json({ bookings: filteredBookings });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
     }
   },
 };

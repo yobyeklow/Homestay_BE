@@ -26,9 +26,27 @@ router.patch(
 );
 
 router.get(
-  "/booking/get-all/:hostID",
+  "/booking/get-all/:customerID",
   checkAuthenticationHost,
-  bookingController.getAllBookingsOfHost
+  bookingController.getAllReservation
+);
+
+router.get(
+  "/booking/get-all/completed/:customerID",
+  checkAuthenticationHost,
+  bookingController.getAllCompletedReservation
+);
+
+router.get(
+  "/booking/get-all/canceled/:customerID",
+  checkAuthenticationHost,
+  bookingController.getAllCancelledReservation
+);
+
+router.get(
+  "/booking/get-all/pendding/:customerID",
+  checkAuthenticationHost,
+  bookingController.getAllPenddingReservation
 );
 
 router.get(
