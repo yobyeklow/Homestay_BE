@@ -14,6 +14,12 @@ router.get(
   houseController.getHouseCreatedByHost
 );
 
+router.delete(
+  "/house/delete/:hostID/:houseID",
+  checkAuthenticationHost,
+  houseController.deleteHouseByHost
+);
+
 router.get(
   "/house/get-all-near-location",
   houseController.getAllHouseStayNearLocation

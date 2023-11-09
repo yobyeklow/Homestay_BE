@@ -693,6 +693,60 @@ const houseController = {
       res.status(500).json({ msg: error.message });
     }
   },
+
+  deleteHouseByHost: async (req, res) => {
+    try {
+      const { hostID, houseID } = req.params;
+
+      const existingHouse = await House.findOne({
+        _id: houseID,
+        hostID: hostID,
+      }).populate({
+        path: "facilityTypeID",
+        model: "FacilitiesType",
+        select: "_id name",
+        populate: {
+          path: "facilitiesDetail",
+          model: "FacilitiesDetail",
+          select: "_id facilityName amount",
+        },
+      });
+
+      if (!existingHouse) {
+        return res.status(400).json({ msg: "Housestay không tồn tại" });
+      }
+
+      const existingBooking = await Booking.findOne({
+        houseID: existingHouse._id,
+        checkOutDate: { $gt: new Date() },
+        bookingStatus: { $ne: "Đã hủy" },
+      });
+
+      if (existingBooking) {
+        return res.status(400).json({ msg: "Housestay đang được booking." });
+      }
+
+      const deleteOperations = [
+        House.deleteOne({ _id: existingHouse._id }),
+        Room.deleteOne({ _id: existingHouse.roomID }),
+        Location.deleteOne({ _id: existingHouse.locationID }),
+        Calendar.deleteOne({ _id: existingHouse.calenderID }),
+      ];
+
+      await Promise.all(deleteOperations);
+
+      for (const fa of existingHouse.facilityTypeID) {
+        await FacilitiesType.deleteOne({ _id: fa._id });
+        for (const de of fa.facilitiesDetail) {
+          await FacilitiesDetail.deleteOne({ _id: de._id });
+        }
+      }
+
+      res.status(200).json({ msg: "Xóa housestay thành công" });
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 export default houseController;
