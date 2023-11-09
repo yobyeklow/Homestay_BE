@@ -9,13 +9,13 @@ const router = express.Router();
 
 router.get("/house/get-all", houseController.getAllHouseStay);
 router.get(
-  "/house/get-all/:hostID",
+  "/house/get-all/:customerID",
   checkAuthenticationHost,
   houseController.getHouseCreatedByHost
 );
 
 router.delete(
-  "/house/delete/:hostID/:houseID",
+  "/house/delete/:customerID/:houseID",
   checkAuthenticationHost,
   houseController.deleteHouseByHost
 );

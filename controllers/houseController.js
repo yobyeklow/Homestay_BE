@@ -652,12 +652,18 @@ const houseController = {
   getHouseCreatedByHost: async (req, res) => {
     try {
       let { page, limit } = req.query;
-      const { hostID } = req.params;
+      const { customerID } = req.params;
+
+      const existingHost = await Host.findOne({ customerID });
+
+      if (!existingHost)
+        res.status(400).json({ msg: "Tài khoản không tồn tại" });
+
       page = page ? parseInt(page) : 1;
       limit = limit ? parseInt(limit) : 20;
       const skip = (page - 1) * limit;
 
-      const query = House.find({ hostID: hostID })
+      const query = House.find({ hostID: existingHost._id })
         .populate("calenderID", "_id available dateFrom dateTo")
         .populate("locationID", "_id city streetAddress coordinates zipCode")
         .populate("roomID", "_id name count type")
@@ -696,11 +702,13 @@ const houseController = {
 
   deleteHouseByHost: async (req, res) => {
     try {
-      const { hostID, houseID } = req.params;
-
+      const { customerID, houseID } = req.params;
+      const existingHost = await Host.findOne({ customerID });
+      if (!existingHost)
+        res.status(400).json({ msg: "Tài khoản không tồn tại" });
       const existingHouse = await House.findOne({
         _id: houseID,
-        hostID: hostID,
+        hostID: existingHost._id,
       }).populate({
         path: "facilityTypeID",
         model: "FacilitiesType",

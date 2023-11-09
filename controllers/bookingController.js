@@ -216,7 +216,7 @@ const bookingController = {
         .populate({
           path: "houseID",
           model: "House",
-          select: "_id hostID title description costPerNight images",
+          select: "_id hostID title description costPerNight images bedCount",
           match: { hostID: hostID },
           populate: [
             {
@@ -232,7 +232,7 @@ const bookingController = {
             {
               path: "roomID",
               model: "Room",
-              select: "_id name bedCount type",
+              select: "_id name count type",
             },
             {
               path: "locationID",
