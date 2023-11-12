@@ -212,6 +212,11 @@ const bookingController = {
   getAllBookingsOfHost: async (req, res) => {
     try {
       const { hostID } = req.params;
+      let { page, limit } = req.query;
+
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
 
       const results = await Booking.find()
         .populate({
@@ -266,8 +271,12 @@ const bookingController = {
       const filteredBookings = results.filter((booking) => {
         return booking.houseID !== null;
       });
+      const paginatedBookings = filteredBookings.slice(skip, skip + limit);
 
-      res.status(200).json({ bookings: filteredBookings });
+      res.status(200).json({
+        bookings: paginatedBookings,
+        bookingQunatity: filteredBookings.length,
+      });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
@@ -276,6 +285,11 @@ const bookingController = {
   getAllBookingByCustomer: async (req, res) => {
     try {
       const { customerID } = req.params;
+      let { page, limit } = req.query;
+
+      page = page ? parseInt(page) : 1;
+      limit = limit ? parseInt(limit) : 20;
+      const skip = (page - 1) * limit;
       const results = await Booking.find({ customerID })
         .populate({
           path: "houseID",
@@ -325,9 +339,12 @@ const bookingController = {
           model: "Payment",
           select: "_id amount paymentDate tax",
         })
-        .lean();
+        .exec();
+      const paginatedBookings = results.slice(skip, skip + limit);
 
-      res.status(200).json({ bookings: results });
+      res
+        .status(200)
+        .json({ bookings: paginatedBookings, bookingQuantity: results.length });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -362,15 +379,18 @@ const bookingController = {
           model: "Guest",
           select: "_id guestType guestNumber",
         })
-        .skip(skip)
-        .limit(limit)
         .exec();
 
       const filteredBookings = results.filter((booking) => {
         return booking.houseID !== null;
       });
 
-      res.status(200).json({ bookings: filteredBookings });
+      const paginatedBookings = filteredBookings.slice(skip, skip + limit);
+
+      res.status(200).json({
+        bookings: paginatedBookings,
+        bookingQuantity: filteredBookings.length,
+      });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
@@ -403,15 +423,17 @@ const bookingController = {
           model: "Guest",
           select: "_id guestType guestNumber",
         })
-        .skip(skip)
-        .limit(limit)
         .exec();
 
       const filteredBookings = results.filter((booking) => {
         return booking.houseID !== null;
       });
+      const paginatedBookings = filteredBookings.slice(skip, skip + limit);
 
-      res.status(200).json({ bookings: filteredBookings });
+      res.status(200).json({
+        bookings: paginatedBookings,
+        bookingQuantity: filteredBookings.length,
+      });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
@@ -450,8 +472,11 @@ const bookingController = {
       const filteredBookings = results.filter((booking) => {
         return booking.houseID !== null;
       });
-
-      res.status(200).json({ bookings: filteredBookings });
+      const paginatedBookings = filteredBookings.slice(skip, skip + limit);
+      res.status(200).json({
+        bookings: paginatedBookings,
+        bookingQuantity: filteredBookings.length,
+      });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
@@ -491,7 +516,11 @@ const bookingController = {
         return booking.houseID !== null;
       });
 
-      res.status(200).json({ bookings: filteredBookings });
+      const paginatedBookings = filteredBookings.slice(skip, skip + limit);
+      res.status(200).json({
+        bookings: paginatedBookings,
+        bookingQuantity: filteredBookings.length,
+      });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

@@ -351,15 +351,16 @@ const houseController = {
           },
         });
 
-      // Apply pagination
-      query.skip(skip).limit(limit);
-
       const result = await query.exec();
       const filteredHouses = result.filter(
         (house) => house.calenderID.available === true
       );
+      const paginatedHouses = filteredHouses.slice(skip, skip + limit);
 
-      res.status(200).json({ houses: filteredHouses });
+      res.status(200).json({
+        houses: paginatedHouses,
+        houseQuantity: filteredHouses.length,
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -505,8 +506,6 @@ const houseController = {
               },
             });
 
-      query.skip(skip).limit(limit);
-
       const result = await query.exec();
       const filteredHouses = result.filter((house) => {
         let isCity = city ? house.locationID.city === city : true;
@@ -572,7 +571,12 @@ const houseController = {
         );
       });
 
-      res.status(200).json({ houses: filteredHouses });
+      const paginatedHouses = filteredHouses.slice(skip, skip + limit);
+
+      res.status(200).json({
+        houses: paginatedHouses,
+        houseQuantity: filteredHouses.length,
+      });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
@@ -689,12 +693,12 @@ const houseController = {
           },
         });
 
-      // Apply pagination
-      query.skip(skip).limit(limit);
-
       const results = await query.exec();
+      const paginatedHouses = results.slice(skip, skip + limit);
 
-      res.status(200).json({ houses: results });
+      res
+        .status(200)
+        .json({ houses: paginatedHouses, houseQuantity: results.length });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
