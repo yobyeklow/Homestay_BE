@@ -11,6 +11,7 @@ import hostRoute from "./routes/hostRoute.js";
 import houseRoute from "./routes/houseRoute.js";
 import bookingRoute from "./routes/bookingRoute.js";
 import revenueRoute from "./routes/revenueRoute.js";
+import handleRunUpdateAll from "./handleRunUpdateAll.js";
 
 dotenv.config();
 
@@ -26,15 +27,6 @@ app.use(
 app.use(cookieParser(process.env.JWT_SECRET));
 app.use(morgan("common"));
 
-//connect database
-
-mongoose
-  .connect(process.env.MONGODB_URL)
-  .then(() => {
-    console.log("Connected to Mongoose");
-  })
-  .catch((err) => console.log(err));
-
 // Routes
 app.use("/api", authRoute);
 app.use("/api", hostRoute);
@@ -43,6 +35,21 @@ app.use("/api", bookingRoute);
 app.use("/api", revenueRoute);
 //
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
-  console.log(`Server is running http://localhost:${port}`);
-});
+
+const start = async () => {
+  mongoose
+    .connect(process.env.MONGODB_URL)
+    .then(() => {
+      console.log("Connected to Mongoose");
+    })
+    .catch((err) => console.log(err));
+
+  app.listen(port, () => {
+    console.log(`Server is running http://localhost:${port}`);
+  });
+
+  await handleRunUpdateAll.handleRunUpdateBoookingStatusCompleted();
+  await handleRunUpdateAll.handleRunUpdateCalendarStatus();
+};
+
+start();
