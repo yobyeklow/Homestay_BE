@@ -525,5 +525,42 @@ const bookingController = {
       return res.status(500).json({ msg: error.message });
     }
   },
+
+  getBookingById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await Booking.findOne({ _id: id })
+        .populate({
+          path: "houseID",
+          model: "House",
+          select:
+            "_id hostID numberGuest title description costPerNight images bedCount",
+        })
+        .populate({
+          path: "customerID",
+          model: "Customer",
+          select: "_id name phoneNumber",
+        })
+        .populate({
+          path: "guestID",
+          model: "Guest",
+          select: "_id guestType guestNumber",
+        })
+        .populate({
+          path: "paymentID",
+          model: "Payment",
+          select: "_id amount paymentDate tax isRefund isFreeRefund",
+        });
+      console.log(
+        "🚀 ~ file: bookingController.js:548 ~ getBookingById: ~ results:",
+        result
+      );
+      res.status(200).json({
+        booking: result,
+      });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
 };
 export default bookingController;
