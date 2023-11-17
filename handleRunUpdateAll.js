@@ -24,6 +24,7 @@ const handleRunUpdateAll = {
       await Booking.updateMany(
         {
           checkOutDate: { $lt: currentDate.toISOString() },
+          bookingStatus: "Đang xử lý",
         },
         { bookingStatus: "Hoàn thành" }
       );

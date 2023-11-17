@@ -169,12 +169,12 @@ const houseController = {
         });
         const updatedLocation = {
           streetAddress:
-            location.streetAddress || existingLocation.streetAddress,
-          city: location.city || existingLocation.city,
-          zipCode: location.zipCode || existingLocation.zipCode,
+            location?.streetAddress || existingLocation.streetAddress,
+          city: location?.city || existingLocation.city,
+          zipCode: location?.zipCode || existingLocation.zipCode,
           coordinates: {
-            x: location.coordinates?.x || existingLocation.coordinates.x,
-            y: location.coordinates?.y || existingLocation.coordinates.y,
+            x: location?.coordinates?.x || existingLocation.coordinates.x,
+            y: location?.coordinates?.y || existingLocation.coordinates.y,
           },
         };
         await Location.findOneAndUpdate(

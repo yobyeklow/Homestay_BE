@@ -551,10 +551,7 @@ const bookingController = {
           model: "Payment",
           select: "_id amount paymentDate tax isRefund isFreeRefund",
         });
-      console.log(
-        "🚀 ~ file: bookingController.js:548 ~ getBookingById: ~ results:",
-        result
-      );
+
       res.status(200).json({
         booking: result,
       });
