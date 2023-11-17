@@ -7,6 +7,7 @@ import House from "../model/house.js";
 import Location from "../model/location.js";
 import Rating from "../model/rating.js";
 import Room from "../model/room.js";
+import removeDiacritics from "../utils/removeDiacritics.js";
 
 function checkFacilitiesInFacilityTypeID(facilities, facilityTypeID) {
   const results = facilities.map((facility) => {
@@ -508,7 +509,11 @@ const houseController = {
 
       const result = await query.exec();
       const filteredHouses = result.filter((house) => {
-        let isCity = city ? house.locationID.city === city : true;
+        let isCity = city
+          ? removeDiacritics(city.toLowerCase()).includes(
+              removeDiacritics(house.locationID.city.toLowerCase())
+            )
+          : true;
 
         let isNearLocation =
           sw && ne

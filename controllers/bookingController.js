@@ -525,7 +525,6 @@ const bookingController = {
       return res.status(500).json({ msg: error.message });
     }
   },
-
   getBookingById: async (req, res) => {
     try {
       const { id } = req.params;
