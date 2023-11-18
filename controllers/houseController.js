@@ -534,17 +534,15 @@ const houseController = {
 
         let isBedCount = bedCount ? bedCount >= house.bedCount : true;
         const isBedRoom = countBedRoom
-          ? house.roomID.some(
-              (r) =>
-                r.type === "phongngu" &&
-                parseInt(countBedRoom) >= parseInt(r.count)
-            )
+          ? house.roomID
+              .filter((r) => r.type === "phongngu")
+              .every((f) => parseInt(f.count) >= parseInt(countBedRoom))
           : true;
 
         const isBathRoom = countBathRoom
-          ? house.roomID.some(
-              (r) => r.type === "phongtam" && parseInt(countBathRoom) >= r.count
-            )
+          ? house.roomID
+              .filter((r) => r.type === "phongtam")
+              .every((f) => parseInt(f.count) >= parseInt(countBathRoom))
           : true;
 
         let arrayFacilities = [];
