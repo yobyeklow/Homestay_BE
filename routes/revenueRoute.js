@@ -1,20 +1,17 @@
 import express from "express";
-import {
-  checkAuthentication,
-  checkAuthenticationHost,
-} from "../middlewares/checkAuth.js";
+import { checkAuthenticationHost } from "../middlewares/checkAuth.js";
 import revenueController from "../controllers/revenueController.js";
 
 const router = express.Router();
 
 router.get(
-  "/revenue/get-by-month/:year/:month",
+  "/revenue/get-by-month/:customerID/:year/:month",
   checkAuthenticationHost,
   revenueController.getByMonth
 );
 
 router.get(
-  "/revenue/get-by-year/:year",
+  "/revenue/get-by-year/:customerID/:year",
   checkAuthenticationHost,
   revenueController.getByYear
 );

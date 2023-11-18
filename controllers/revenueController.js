@@ -8,7 +8,13 @@ const revenueController = {
     try {
       const year = parseInt(req.params.year);
       const month = parseInt(req.params.month);
+      const { customerID } = req.params;
 
+      const existCustomer = await Customer.findById({ _id: customerID });
+
+      if (!existCustomer && existCustomer.role !== "host") {
+        return res.status(404).json({ error: "Tài khoản không tìm thấy" });
+      }
       const monthlyRevenue = await Payment.aggregate([
         {
           $match: {
@@ -42,7 +48,13 @@ const revenueController = {
   getByYear: async (req, res) => {
     try {
       const year = parseInt(req.params.year);
+      const { customerID } = req.params;
 
+      const existCustomer = await Customer.findById({ _id: customerID });
+
+      if (!existCustomer && existCustomer.role !== "host") {
+        return res.status(404).json({ error: "Tài khoản không tìm thấy" });
+      }
       const yearlyRevenue = await Payment.aggregate([
         {
           $match: {
@@ -69,6 +81,7 @@ const revenueController = {
     }
   },
 
+  // Get all revenue from the start date to the end date
   getAllRevenueFromTheStartDateToEndDate: async (req, res) => {
     const { customerID } = req.params;
     const { dateFrom, dateTo } = req.query;
@@ -97,6 +110,38 @@ const revenueController = {
             localField: "bookingID",
             foreignField: "_id",
             as: "booking",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  bookingStatus: 1,
+                  houseID: 1,
+                  customerID: 1,
+                  checkInDate: 1,
+                  checkOutDate: 1,
+                  totalPrice: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "customers",
+            localField: "booking.customerID",
+            foreignField: "_id",
+            as: "customer",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  photo: 1,
+                  phoneNumber: 1,
+                  email: 1,
+                },
+              },
+            ],
           },
         },
         {
@@ -105,6 +150,14 @@ const revenueController = {
             localField: "booking.houseID",
             foreignField: "_id",
             as: "house",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  hostID: 1,
+                },
+              },
+            ],
           },
         },
         {
@@ -113,10 +166,19 @@ const revenueController = {
             localField: "house.hostID",
             foreignField: "_id",
             as: "host",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  customerID: 1,
+                },
+              },
+            ],
           },
         },
       ]);
 
+      // Get sum of completed revenue
       const sumCompletedRevenue = data
         .map((item) => {
           if (
@@ -125,7 +187,9 @@ const revenueController = {
           )
             return item.amount;
         })
-        .reduce((a, b) => a + b, 0);
+        .reduce((a, b) => {
+          return b ? a + b : a;
+        }, 0);
 
       const completedBooking = data.filter((item) => {
         if (
@@ -135,18 +199,39 @@ const revenueController = {
           return item;
       });
 
+      // Get sum of canceled revenue
       const canceledBooking = data.filter((item) => {
         if (
-          item.booking[0].bookingStatus === "Đã hủy" &&
+          item.booking[0].bookingStatus === "Đã huỷ" &&
           item.host[0].customerID.toString() === customerID
         )
           return item;
       });
 
-      res.json({
+      const customersData = data
+        .map((item) => item.customer)
+        .flatMap((item) => item);
+
+      // Create a Set from the array of objects
+      const uniqueIds = new Set(
+        customersData.map((customer) => customer._id.toString())
+      );
+
+      // Filter out the duplicate objects
+      const duplicatedCustomers = customersData.filter((customer) => {
+        if (uniqueIds.has(customer._id.toString())) {
+          uniqueIds.delete(customer._id.toString());
+          return true;
+        }
+        return false;
+      });
+
+      // Return results
+      res.status(200).json({
         sumCompletedRevenue,
         canceledBookings: canceledBooking.length,
         completedBookings: completedBooking.length,
+        customers: duplicatedCustomers,
       });
     } catch (error) {
       console.error(error);
