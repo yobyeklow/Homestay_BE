@@ -116,7 +116,7 @@ const revenueController = {
         },
       ]);
 
-      const sumRevenue = data
+      const sumCompletedRevenue = data
         .map((item) => {
           if (
             item.booking[0].bookingStatus === "Đã hoàn thành" &&
@@ -128,7 +128,7 @@ const revenueController = {
 
       console.log(
         "🚀 ~ file: revenueController.js:131 ~ getAllRevenueFromTheStartDateToEndDate: ~ sumRevenue:",
-        sumRevenue
+        sumCompletedRevenue
       );
       res.json({ data });
     } catch (error) {
