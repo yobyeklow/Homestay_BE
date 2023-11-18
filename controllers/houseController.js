@@ -513,7 +513,10 @@ const houseController = {
         let isCity = city
           ? removeDiacritics(city.toLowerCase()).includes(
               removeDiacritics(house.locationID.city.toLowerCase().trim())
-            )
+            ) ||
+            removeDiacritics(
+              house.locationID.streetAddress.toLowerCase().trim()
+            ).includes(removeDiacritics(city.toLowerCase().trim()))
           : true;
 
         let isNearLocation =

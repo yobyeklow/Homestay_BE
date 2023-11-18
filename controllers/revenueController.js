@@ -1,3 +1,4 @@
+import Booking from "../model/booking.js";
 import Customer from "../model/customer.js";
 import Payment from "../model/payment.js";
 
@@ -126,11 +127,27 @@ const revenueController = {
         })
         .reduce((a, b) => a + b, 0);
 
-      console.log(
-        "🚀 ~ file: revenueController.js:131 ~ getAllRevenueFromTheStartDateToEndDate: ~ sumRevenue:",
-        sumCompletedRevenue
-      );
-      res.json({ data });
+      const completedBooking = data.filter((item) => {
+        if (
+          item.booking[0].bookingStatus === "Đã hoàn thành" &&
+          item.host[0].customerID.toString() === customerID
+        )
+          return item;
+      });
+
+      const canceledBooking = data.filter((item) => {
+        if (
+          item.booking[0].bookingStatus === "Đã hủy" &&
+          item.host[0].customerID.toString() === customerID
+        )
+          return item;
+      });
+
+      res.json({
+        sumCompletedRevenue,
+        canceledBookings: canceledBooking.length,
+        completedBookings: completedBooking.length,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
