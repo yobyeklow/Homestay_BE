@@ -509,9 +509,10 @@ const houseController = {
 
       const result = await query.exec();
       const filteredHouses = result.filter((house) => {
+        // Check if the city is in the house's city
         let isCity = city
           ? removeDiacritics(city.toLowerCase()).includes(
-              removeDiacritics(house.locationID.city.toLowerCase())
+              removeDiacritics(house.locationID.city.toLowerCase().trim())
             )
           : true;
 

@@ -19,4 +19,10 @@ router.get(
   revenueController.getByYear
 );
 
+router.get(
+  "/revenue/from-the-start-date-to-end-date/:customerID",
+  checkAuthenticationHost,
+  revenueController.getAllRevenueFromTheStartDateToEndDate
+);
+
 export default router;

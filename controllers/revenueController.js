@@ -1,3 +1,4 @@
+import Customer from "../model/customer.js";
 import Payment from "../model/payment.js";
 
 // Controller for revenue statistics
@@ -61,6 +62,75 @@ const revenueController = {
       ]);
 
       res.json({ yearlyRevenue });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  getAllRevenueFromTheStartDateToEndDate: async (req, res) => {
+    const { customerID } = req.params;
+    const { dateFrom, dateTo } = req.query;
+
+    const existCustomer = await Customer.findById({ _id: customerID });
+
+    if (!existCustomer && existCustomer.role !== "host") {
+      return res.status(404).json({ error: "Tài khoản không tìm thấy" });
+    }
+
+    try {
+      const data = await Payment.aggregate([
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $gte: ["$paymentDate", new Date(dateFrom)] },
+                { $lte: ["$paymentDate", new Date(dateTo)] },
+              ],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "bookings",
+            localField: "bookingID",
+            foreignField: "_id",
+            as: "booking",
+          },
+        },
+        {
+          $lookup: {
+            from: "houses",
+            localField: "booking.houseID",
+            foreignField: "_id",
+            as: "house",
+          },
+        },
+        {
+          $lookup: {
+            from: "hosts",
+            localField: "house.hostID",
+            foreignField: "_id",
+            as: "host",
+          },
+        },
+      ]);
+
+      const sumRevenue = data
+        .map((item) => {
+          if (
+            item.booking[0].bookingStatus === "Đã hoàn thành" &&
+            item.host[0].customerID.toString() === customerID
+          )
+            return item.amount;
+        })
+        .reduce((a, b) => a + b, 0);
+
+      console.log(
+        "🚀 ~ file: revenueController.js:131 ~ getAllRevenueFromTheStartDateToEndDate: ~ sumRevenue:",
+        sumRevenue
+      );
+      res.json({ data });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
