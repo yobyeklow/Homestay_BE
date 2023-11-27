@@ -8,6 +8,7 @@ import houseController from "../controllers/houseController.js";
 const router = express.Router();
 
 router.get("/house/get-all", houseController.getAllHouseStay);
+router.get("/house/favorites", houseController.getAllHouseStayFavorite);
 router.get(
   "/house/get-all/:customerID",
   checkAuthenticationHost,

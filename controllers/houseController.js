@@ -367,6 +367,48 @@ const houseController = {
     }
   },
 
+  getAllHouseStayFavorite: async (req, res) => {
+    try {
+      let { favorites } = req.query;
+      let data = []
+      for (let i = 0; i < favorites.length; i++) {
+        const query = House.find({ _id: favorites[i] })
+        .populate("calenderID", "_id available dateFrom dateTo")
+        .populate("locationID", "_id city streetAddress coordinates zipCode")
+        .populate("roomID", "_id name count type")
+        .populate({
+          path: "hostID",
+          model: "Host",
+          select: "_id bankName bankNumber swiftCode nameOnCard",
+          populate: {
+            path: "customerID",
+            model: "Customer",
+            select: "_id name photo phoneNumber email",
+          },
+        })
+        .populate("facilityTypeID", "_id name")
+        .populate({
+          path: "facilityTypeID",
+          model: "FacilitiesType",
+          select: "_id name",
+          populate: {
+            path: "facilitiesDetail",
+            model: "FacilitiesDetail",
+            select: "_id facilityName amount",
+          },
+        });
+
+        const result = await query.exec();
+        data = result.filter(
+          (house) => house.calenderID.available === true
+        );
+      }
+      res.status(200).json({houses: data});
+    } catch (error) {
+      res.status(500).json({ msg: error.message });
+    }
+  },
+
   getAllHouseStayNearLocation: async (req, res) => {
     try {
       const { sw, ne } = req.query;
