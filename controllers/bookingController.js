@@ -53,7 +53,7 @@ const bookingController = {
       const checkInDateFormat = moment(checkInDate).add(7, 'hours').format('YYYY-MM-DDTHH:mm:ss').toString()
       const checkOutDateFormat = moment(checkOutDate).add(7, 'days').format('YYYY-MM-DDTHH:mm:ss').toString()
       // Create a booking
-      const booking = await Booking.create({houseID, customerID, checkInDateFormat, checkOutDateFormat, totalPrice});
+      const booking = await Booking.create({houseID, customerID, checkInDate: checkInDateFormat, checkOutDate: checkOutDateFormat, totalPrice});
 
       // Create guest entries and get their IDs
       const guestIDs = await Promise.all(
