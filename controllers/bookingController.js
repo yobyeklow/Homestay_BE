@@ -51,7 +51,7 @@ const bookingController = {
         countNight * existingHouse.costPerNight * 0.08;
 
       const checkInDateFormat = moment(checkInDate).add(7, 'hours').format('YYYY-MM-DDTHH:mm:ss').toString()
-      const checkOutDateFormat = moment(checkOutDate).add(7, 'days').format('YYYY-MM-DDTHH:mm:ss').toString()
+      const checkOutDateFormat = moment(checkOutDate).add(7, 'hours').format('YYYY-MM-DDTHH:mm:ss').toString()
       // Create a booking
       const booking = await Booking.create({houseID, customerID, checkInDate: checkInDateFormat, checkOutDate: checkOutDateFormat, totalPrice});
 
