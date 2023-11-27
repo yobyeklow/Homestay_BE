@@ -5,7 +5,6 @@ import Host from "../model/host.js";
 import House from "../model/house.js";
 import Payment from "../model/payment.js";
 import Refund from "../model/refund.js";
-import moment from "moment";
 
 const bookingController = {
   bookingHouseStay: async (req, res) => {
@@ -57,16 +56,10 @@ const bookingController = {
         countNight * existingHouse.costPerNight +
         countNight * existingHouse.costPerNight * 0.08;
 
-      const checkInDateFormat = moment(checkInDate).add(7, 'hours').format("YYYY-MM-DDTHH:mm:ss.SSSSSS")
-      const checkOutDateFormat = moment(checkOutDate).add(7, 'hours').format("YYYY-MM-DDTHH:mm:ss.SSSSSS")
+      const checkInDateFormat = checkIn.setHours(checkIn.getHours() + 7)
+      const checkOutDateFormat = checkOut.setHours(checkOut.getHours() + 7)
       // Create a booking
-      const booking = await Booking.create({
-        houseID,
-        customerID,
-        checkInDateFormat,
-        checkOutDateFormat,
-        totalPrice,
-      });
+      const booking = await Booking.create({houseID, customerID, checkInDateFormat, checkOutDateFormat, totalPrice});
 
       // Create guest entries and get their IDs
       const guestIDs = await Promise.all(
