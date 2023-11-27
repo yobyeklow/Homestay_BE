@@ -1,3 +1,4 @@
+import moment from "moment/moment.js";
 import Booking from "../model/booking.js";
 import Calendar from "../model/calendar.js";
 import Guest from "../model/guests.js";
@@ -39,14 +40,7 @@ const bookingController = {
       const dateTo = new Date(calendar.dateTo);
 
       // Check if the booking dates are valid
-      if (
-        checkIn < dateFrom ||
-        checkIn > dateTo ||
-        checkOut < dateFrom ||
-        checkOut > dateTo
-      ) {
-        return res.status(400).json({ msg: "Lỗi! Vui lòng thử lại" });
-      }
+      if (checkIn < dateFrom || checkIn > dateTo || checkOut < dateFrom || checkOut > dateTo) return res.status(400).json({ msg: "Lỗi! Vui lòng thử lại" });
 
       // Calculate total price
       const countNight = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
@@ -56,8 +50,8 @@ const bookingController = {
         countNight * existingHouse.costPerNight +
         countNight * existingHouse.costPerNight * 0.08;
 
-      const checkInDateFormat = checkIn.setHours(checkIn.getHours() + 7)
-      const checkOutDateFormat = checkOut.setHours(checkOut.getHours() + 7)
+      const checkInDateFormat = moment(checkInDate).add(7, 'hours').format('YYYY-MM-DDTHH:mm:ss').toString()
+      const checkOutDateFormat = moment(checkOutDate).add(7, 'days').format('YYYY-MM-DDTHH:mm:ss').toString()
       // Create a booking
       const booking = await Booking.create({houseID, customerID, checkInDateFormat, checkOutDateFormat, totalPrice});
 
