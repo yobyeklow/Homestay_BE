@@ -24,7 +24,7 @@ const bookingSchema = new Schema(
     },
     bookingStatus: {
       type: String,
-      enum: ["Đã hủy", "Đang xử lý", "Hoàn thành"],
+      enum: ["Đã huỷ", "Đang xử lý", "Hoàn thành"],
       default: "Đang xử lý",
     },
     totalPrice: {

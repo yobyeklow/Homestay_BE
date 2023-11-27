@@ -187,7 +187,7 @@ const bookingController = {
         { _id: bookingID },
         {
           $set: {
-            bookingStatus: "Đã hủy",
+            bookingStatus: "Đã huỷ",
           },
         }
       );
@@ -448,7 +448,7 @@ const bookingController = {
       page = page ? parseInt(page) : 1;
       limit = limit ? parseInt(limit) : 20;
       const skip = (page - 1) * limit;
-      const results = await Booking.find({ bookingStatus: "Đã hủy" })
+      const results = await Booking.find({ bookingStatus: "Đã huỷ" })
         .populate({
           path: "houseID",
           model: "House",

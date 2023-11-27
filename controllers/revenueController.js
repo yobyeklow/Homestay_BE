@@ -182,7 +182,7 @@ const revenueController = {
       const sumCompletedRevenue = data
         .map((item) => {
           if (
-            item.booking[0].bookingStatus === "Đã hoàn thành" &&
+            item.booking[0].bookingStatus === "Hoàn thành" &&
             item.host[0].customerID.toString() === customerID
           )
             return item.amount;
@@ -193,7 +193,7 @@ const revenueController = {
 
       const completedBooking = data.filter((item) => {
         if (
-          item.booking[0].bookingStatus === "Đã hoàn thành" &&
+          item.booking[0].bookingStatus === "Hoàn thành" &&
           item.host[0].customerID.toString() === customerID
         )
           return item;

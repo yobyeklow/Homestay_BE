@@ -559,7 +559,7 @@ const houseController = {
 
         let isFacilities =
           arrayFacilities.length > 0 ? arrayFacilities.includes(true) : true;
-
+        
         let isPrice =
           minPrice && maxPrice
             ? house.costPerNight >= minPrice && house.costPerNight <= maxPrice
@@ -739,7 +739,7 @@ const houseController = {
       const existingBooking = await Booking.findOne({
         houseID: existingHouse._id,
         checkOutDate: { $gt: new Date() },
-        bookingStatus: { $ne: "Đã hủy" },
+        bookingStatus: { $ne: "Đã huỷ" },
       });
 
       if (existingBooking) {
