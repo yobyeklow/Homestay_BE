@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Booking from "../model/booking.js";
 import Calendar from "../model/calendar.js";
 import FacilitiesDetail from "../model/facilitiesDetails.js";
@@ -8,6 +9,7 @@ import Location from "../model/location.js";
 import Rating from "../model/rating.js";
 import Room from "../model/room.js";
 import removeDiacritics from "../utils/removeDiacritics.js";
+import { ObjectId } from "mongodb";
 
 function checkFacilitiesInFacilityTypeID(facilities, facilityTypeID) {
   const results = facilities.map((facility) => {
@@ -369,41 +371,26 @@ const houseController = {
 
   getAllHouseStayFavorite: async (req, res) => {
     try {
-      let { favorites } = req.query;
-      let data = []
-      for (let i = 0; i < favorites.length; i++) {
-        const query = House.find({ _id: favorites[i] })
-        .populate("calenderID", "_id available dateFrom dateTo")
-        .populate("locationID", "_id city streetAddress coordinates zipCode")
-        .populate("roomID", "_id name count type")
-        .populate({
-          path: "hostID",
-          model: "Host",
-          select: "_id bankName bankNumber swiftCode nameOnCard",
-          populate: {
-            path: "customerID",
-            model: "Customer",
-            select: "_id name photo phoneNumber email",
-          },
-        })
-        .populate("facilityTypeID", "_id name")
-        .populate({
-          path: "facilityTypeID",
-          model: "FacilitiesType",
-          select: "_id name",
-          populate: {
-            path: "facilitiesDetail",
-            model: "FacilitiesDetail",
-            select: "_id facilityName amount",
-          },
-        });
+      const { favorites } = req.query;
+  
+      const housePromises = favorites.map(async (favorite) => {
+        const house = await House.aggregate([
+          { $match: { _id: new ObjectId(favorite) } },
+          { $lookup: { from: "calendars", localField: "_id", foreignField: "houseID", pipeline: [{ $match: { available: true } }, {$project: {_id: 1, available: 1, dateFrom: 1, dateTo: 1}}], as: "calenderID"}},
+          { $lookup: { from: "locations", localField: "_id", foreignField: "houseID", pipeline: [{ $project: { _id: 1, city: 1, streetAddress: 1, coordinates: 1, zipCode: 1 } }], as: "locationID"},},
+          { $lookup: { from: "rooms", localField: "_id", foreignField: "houseID", pipeline: [{ $project: { _id: 1, name: 1, count: 1, type: 1 } }], as: "roomID"}},
+          { $lookup: { from: "hosts", localField: "hostID", foreignField: "_id", pipeline: [{ $lookup: { from: "customers", localField: "customerID",foreignField: "_id",pipeline: [{ $project: { _id: 1, name: 1, photo: 1, phoneNumber: 1, email: 1 } }], as: "customerID"}}, { $project: { _id: 1, customerID: { $arrayElemAt: ["$customerID", 0] }}},], as: "hostID"}},
+          { $lookup: { from: "facilitiestypes", localField: "facilityTypeID", foreignField: "_id", pipeline: [{ $lookup: { from: "facilitiesdetails", localField: "facilitiesDetail", foreignField: "_id", pipeline: [{ $project: { _id: 1, facilityName: 1, amount: 1 } }], as: "facilitiesDetail" } }, { $project: { _id: 1, name: 1, facilitiesDetail: 1 } }], as: "facilityTypes",},},
+          { $project: { _id: 1, numberGuest: 1, title: 1, description: 1, costPerNight: 1, images: 1, bedCount: 1, calenderID: { $arrayElemAt: ["$calenderID", 0] },locationID: { $arrayElemAt: ["$locationID", 0] }, roomID: 1, hostID: { $arrayElemAt: ["$hostID", 0] }, facilityTypes: "$facilityTypes",},},
+        ])
 
-        const result = await query.exec();
-        data = result.filter(
-          (house) => house.calenderID.available === true
-        );
-      }
-      res.status(200).json({houses: data});
+        return house;
+      });
+  
+      const houses = await Promise.all(housePromises);
+      const data = [].concat(...houses); 
+  
+      res.status(200).json({ houses: data });
     } catch (error) {
       res.status(500).json({ msg: error.message });
     }
