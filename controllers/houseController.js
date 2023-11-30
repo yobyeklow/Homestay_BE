@@ -663,16 +663,12 @@ const houseController = {
     try {
       const { houseID, customerID } = req.params;
       const { ratingPoint, ratingDescription } = req.body;
-      const existingBooking = await Booking.findOne({
-        customerID: customerID,
-      });
+      const existingBooking = await Booking.findOne({ customerID: customerID, houseID: houseID});
 
-      if (!existingBooking || existingBooking.bookingStatus !== "Hoàn thành")
-        res.status(400).json({ msg: "Bạn không có quyền đánh giá" });
+      if (!existingBooking || existingBooking.bookingStatus !== "Hoàn thành") res.status(400).json({ msg: "Bạn không có quyền đánh giá" });
 
       const existingHouse = await House.findById({ _id: houseID });
-      if (!existingHouse)
-        res.status(400).json({ msg: "Housestay không còn tồn tại" });
+      if (!existingHouse) res.status(400).json({ msg: "Housestay không còn tồn tại" });
 
       const existingRating = await Rating.findOne({ houseID });
       if (existingRating) res.status(400).json({ msg: "Bạn đã đánh giá rồi." });
