@@ -10,13 +10,17 @@ const ratingSchema = new Schema(
       type: String,
       required: true,
     },
-    userID: {
+    customerID: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Customer",
     },
     houseID: {
       type: Schema.Types.ObjectId,
       ref: "House",
+    },
+    bookingID: {
+      type: Schema.Types.ObjectId,
+      ref: "Booking",
     },
   },
   { timestamps: true }

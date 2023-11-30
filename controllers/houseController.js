@@ -661,27 +661,25 @@ const houseController = {
 
   ratingHouse: async (req, res) => {
     try {
-      const { houseID, customerID } = req.params;
+      const { houseID, customerID, bookingID } = req.params;
       const { ratingPoint, ratingDescription } = req.body;
-      const existingBooking = await Booking.findOne({ customerID: customerID, houseID: houseID});
 
-      if (!existingBooking || existingBooking.bookingStatus !== "Hoàn thành") res.status(400).json({ msg: "Bạn không có quyền đánh giá" });
+      const existingRating = await Rating.findOne({ houseID, bookingID, customerID });
+      
+      if (existingRating) return res.status(400).json({ msg: "Housestay đã được đánh giá" });
+
+      const existingBooking = await Booking.findOne({ _id: bookingID, customerID: customerID, houseID: houseID});
+
+      if (!existingBooking || existingBooking.bookingStatus !== "Hoàn thành") return res.status(400).json({ msg: "Bạn chưa được đánh giá" });
 
       const existingHouse = await House.findById({ _id: houseID });
-      if (!existingHouse) res.status(400).json({ msg: "Housestay không còn tồn tại" });
+      if (!existingHouse) return res.status(400).json({ msg: "Housestay không còn tồn tại" });
 
-      const existingRating = await Rating.findOne({ houseID });
-      if (existingRating) res.status(400).json({ msg: "Bạn đã đánh giá rồi." });
+      await Rating.create({houseID, bookingID, customerID: customerID, ratingPoint, ratingDescription,});
 
-      await Rating.create({
-        houseID,
-        userID: customerID,
-        ratingPoint,
-        ratingDescription,
-      });
-
-      res.status(200).json({ msg: "Đánh giá thành công" });
+      return res.status(200).json({ msg: "Đánh giá thành công" });
     } catch (error) {
+      console.log("🚀 ~ file: houseController.js:682 ~ ratingHouse: ~ error:", error)
       res.status(500).json({ msg: error.message });
     }
   },

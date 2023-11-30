@@ -42,7 +42,7 @@ router.patch(
 );
 
 router.post(
-  "/house/:houseID/:customerID/rating",
+  "/house/:houseID/:customerID/:bookingID/rating",
   checkAuthentication,
   houseController.ratingHouse
 );
