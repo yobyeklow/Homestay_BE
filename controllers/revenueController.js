@@ -185,7 +185,7 @@ const revenueController = {
             item.booking[0]?.bookingStatus === "Hoàn thành" &&
             item.host[0].customerID.toString() === customerID
           )
-            return item.amount;
+            return item.booking[0]?.totalPrice || 0;
         })
         .reduce((a, b) => {
           return b ? a + b : a;
