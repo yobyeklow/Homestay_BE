@@ -36,6 +36,8 @@ const revenueController = {
           $sort: { _id: 1 },
         },
       ]);
+      
+      const result = monthlyRevenue.map((item) => item.totalAmount)
 
       res.json({ monthlyRevenue });
     } catch (error) {
@@ -73,8 +75,12 @@ const revenueController = {
           $sort: { _id: 1 },
         },
       ]);
+      const data = Array.from({ length: 12 }, (_) => 0);
+      yearlyRevenue.forEach((item) => {
+        data[item._id - 1] = item.totalAmount;
+      });
 
-      res.json({ yearlyRevenue });
+      return res.status(200).json(data);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
