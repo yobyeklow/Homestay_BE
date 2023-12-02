@@ -182,7 +182,7 @@ const revenueController = {
       const sumCompletedRevenue = data
         .map((item) => {
           if (
-            item.booking[0].bookingStatus === "Hoàn thành" &&
+            item.booking[0]?.bookingStatus === "Hoàn thành" &&
             item.host[0].customerID.toString() === customerID
           )
             return item.amount;
@@ -193,7 +193,7 @@ const revenueController = {
 
       const completedBooking = data.filter((item) => {
         if (
-          item.booking[0].bookingStatus === "Hoàn thành" &&
+          item.booking[0]?.bookingStatus === "Hoàn thành" &&
           item.host[0].customerID.toString() === customerID
         )
           return item;
@@ -202,7 +202,7 @@ const revenueController = {
       // Get sum of canceled revenue
       const canceledBooking = data.filter((item) => {
         if (
-          item.booking[0].bookingStatus === "Đã huỷ" &&
+          item.booking[0]?.bookingStatus === "Đã huỷ" &&
           item.host[0].customerID.toString() === customerID
         )
           return item;
@@ -227,12 +227,7 @@ const revenueController = {
       });
 
       // Return results
-      res.status(200).json({
-        sumCompletedRevenue,
-        canceledBookings: canceledBooking.length,
-        completedBookings: completedBooking.length,
-        customers: duplicatedCustomers,
-      });
+      res.status(200).json({sumCompletedRevenue,canceledBookings: canceledBooking.length,completedBookings: completedBooking.length,customers: duplicatedCustomers,});
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
