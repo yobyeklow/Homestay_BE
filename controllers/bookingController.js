@@ -519,28 +519,128 @@ const bookingController = {
   getBookingById: async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await Booking.findOne({ _id: id })
-        .populate({
-          path: "houseID",
-          model: "House",
-          select:
-            "_id hostID numberGuest title description costPerNight images bedCount",
-        })
-        .populate({
-          path: "customerID",
-          model: "Customer",
-          select: "_id name phoneNumber",
-        })
-        .populate({
-          path: "guestID",
-          model: "Guest",
-          select: "_id guestType guestNumber",
-        })
-        .populate({
-          path: "paymentID",
-          model: "Payment",
-          select: "_id amount paymentDate tax isRefund isFreeRefund",
-        });
+      // const result = await Booking.findOne({ _id: id })
+      //   .populate({
+      //     path: "houseID",
+      //     model: "House",
+      //     select:
+      //       "_id hostID numberGuest title description costPerNight images bedCount",
+      //   })
+      //   .populate({
+      //     path: "customerID",
+      //     model: "Customer",
+      //     select: "_id name phoneNumber",
+      //   })
+      //   .populate({
+      //     path: "guestID",
+      //     model: "Guest",
+      //     select: "_id guestType guestNumber",
+      //   })
+      //   .populate({
+      //     path: "paymentID",
+      //     model: "Payment",
+      //     select: "_id amount paymentDate tax isRefund isFreeRefund",
+      //   });
+
+      const result = await Booking.aggregate([
+        {
+          $match: {_id: id}
+        },
+        {
+          $lookup: {
+            from: "houses",
+            localField: "houseID",
+            foreignField: "_id",
+            as: "house",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  hostID: 1,
+                  numberGuest: 1,
+                  title: 1,
+                  description: 1,
+                  costPerNight: 1,
+                  images: 1,
+                  bedCount: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "customers",
+            localField: "customerID",
+            foreignField: "_id",
+            as: "customer",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  phoneNumber: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "guests",
+            localField: "guestID",
+            foreignField: "_id",
+            as: "guest",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  guestType: 1,
+                  guestNumber: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "payments",
+            localField: "paymentID",
+            foreignField: "_id",
+            as: "payment",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  amount: 1,
+                  paymentDate: 1,
+                  tax: 1,
+                  isRefund: 1,
+                  isFreeRefund: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "refunds",
+            localField: "paymentID",
+            foreignField: "paymentID",
+            as: "refund",
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  refundDate: 1,
+                  total: 1,
+                  reasonRefund: 1,
+                },
+              },
+            ],
+          },
+        }
+      ])
 
       res.status(200).json({
         booking: result,
