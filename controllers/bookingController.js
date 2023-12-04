@@ -6,6 +6,7 @@ import Host from "../model/host.js";
 import House from "../model/house.js";
 import Payment from "../model/payment.js";
 import Refund from "../model/refund.js";
+import { ObjectId } from "mongodb";
 
 const bookingController = {
   bookingHouseStay: async (req, res) => {
@@ -519,33 +520,9 @@ const bookingController = {
   getBookingById: async (req, res) => {
     try {
       const { id } = req.params;
-      // const result = await Booking.findOne({ _id: id })
-      //   .populate({
-      //     path: "houseID",
-      //     model: "House",
-      //     select:
-      //       "_id hostID numberGuest title description costPerNight images bedCount",
-      //   })
-      //   .populate({
-      //     path: "customerID",
-      //     model: "Customer",
-      //     select: "_id name phoneNumber",
-      //   })
-      //   .populate({
-      //     path: "guestID",
-      //     model: "Guest",
-      //     select: "_id guestType guestNumber",
-      //   })
-      //   .populate({
-      //     path: "paymentID",
-      //     model: "Payment",
-      //     select: "_id amount paymentDate tax isRefund isFreeRefund",
-      //   });
 
       const result = await Booking.aggregate([
-        {
-          $match: {_id: id}
-        },
+        { $match: { _id: new ObjectId(id) } },
         {
           $lookup: {
             from: "houses",
@@ -635,10 +612,25 @@ const bookingController = {
                   refundDate: 1,
                   total: 1,
                   reasonRefund: 1,
+                  paymentID: 1,
                 },
               },
             ],
           },
+        },
+        {
+          $project: {
+            _id: 1,
+            checkInDate: 1,
+            checkOutDate: 1,
+            bookingStatus: 1,
+            totalPrice: 1,
+            house: { $arrayElemAt: ["$house", 0] },
+            customer: { $arrayElemAt: ["$customer", 0] },
+            guest: "$guest",
+            payment: { $arrayElemAt: ["$payment", 0] },
+            refund: { $arrayElemAt: ["$refund", 0] },            
+          }
         }
       ])
 
