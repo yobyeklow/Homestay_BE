@@ -600,25 +600,6 @@ const bookingController = {
           },
         },
         {
-          $lookup: {
-            from: "refunds",
-            localField: "paymentID",
-            foreignField: "paymentID",
-            as: "refundID",
-            pipeline: [
-              {
-                $project: {
-                  _id: 1,
-                  refundDate: 1,
-                  total: 1,
-                  reasonRefund: 1,
-                  paymentID: 1,
-                },
-              },
-            ],
-          },
-        },
-        {
           $project: {
             _id: 1,
             checkInDate: 1,
@@ -629,11 +610,14 @@ const bookingController = {
             customerID: { $arrayElemAt: ["$customerID", 0] },
             guestID: "$guestID",
             paymentID: { $arrayElemAt: ["$paymentID", 0] },
-            refundID: { $arrayElemAt: ["$refundID", 0] },            
           }
         }
       ])
 
+      const refund = await Refund.findOne({ paymentID: result[0].paymentID._id })
+      if(refund) {
+        result[0].refundID = {_id: refund._id, refundDate: refund.refundDate, total: refund.total, reasonRefund: refund.reasonRefund}
+      }
       res.status(200).json({
         booking: result.length > 0 ? result[0] : [],
       });
