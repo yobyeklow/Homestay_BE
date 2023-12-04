@@ -635,7 +635,7 @@ const bookingController = {
       ])
 
       res.status(200).json({
-        booking: result,
+        booking: result.length > 0 ? result[0] : [],
       });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
