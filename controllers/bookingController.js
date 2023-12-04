@@ -528,7 +528,7 @@ const bookingController = {
             from: "houses",
             localField: "houseID",
             foreignField: "_id",
-            as: "house",
+            as: "houseID",
             pipeline: [
               {
                 $project: {
@@ -550,7 +550,7 @@ const bookingController = {
             from: "customers",
             localField: "customerID",
             foreignField: "_id",
-            as: "customer",
+            as: "customerID",
             pipeline: [
               {
                 $project: {
@@ -567,7 +567,7 @@ const bookingController = {
             from: "guests",
             localField: "guestID",
             foreignField: "_id",
-            as: "guest",
+            as: "guestID",
             pipeline: [
               {
                 $project: {
@@ -584,7 +584,7 @@ const bookingController = {
             from: "payments",
             localField: "paymentID",
             foreignField: "_id",
-            as: "payment",
+            as: "paymentID",
             pipeline: [
               {
                 $project: {
@@ -604,7 +604,7 @@ const bookingController = {
             from: "refunds",
             localField: "paymentID",
             foreignField: "paymentID",
-            as: "refund",
+            as: "refundID",
             pipeline: [
               {
                 $project: {
@@ -625,11 +625,11 @@ const bookingController = {
             checkOutDate: 1,
             bookingStatus: 1,
             totalPrice: 1,
-            house: { $arrayElemAt: ["$house", 0] },
-            customer: { $arrayElemAt: ["$customer", 0] },
-            guest: "$guest",
-            payment: { $arrayElemAt: ["$payment", 0] },
-            refund: { $arrayElemAt: ["$refund", 0] },            
+            houseID: { $arrayElemAt: ["$houseID", 0] },
+            customerID: { $arrayElemAt: ["$customerID", 0] },
+            guestID: "$guestID",
+            paymentID: { $arrayElemAt: ["$paymentID", 0] },
+            refundID: { $arrayElemAt: ["$refundID", 0] },            
           }
         }
       ])
