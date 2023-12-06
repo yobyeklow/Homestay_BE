@@ -77,7 +77,7 @@ const revenueController = {
       ]);
       const data = Array.from({ length: 12 }, (_) => 0);
       yearlyRevenue.forEach((item) => {
-        data[item._id - 1] = item.totalAmount;
+        data[item._id - 1] = item.totalAmount / 1.08;
       });
 
       return res.status(200).json(data);
